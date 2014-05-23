@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/add.png</file>
+        <file>icons/delete.png</file>
+        <file>icons/disk.png</file>
+        <file>icons/folder_table.png</file>
+        <file>icons/table_add.png</file>
+        <file>icons/table_row_delete.png</file>
+        <file>icons/table_row_insert.png</file>
+    </qresource>
+</RCC>

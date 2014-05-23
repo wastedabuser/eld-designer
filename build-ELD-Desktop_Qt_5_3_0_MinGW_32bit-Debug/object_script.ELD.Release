@@ -1,0 +1,17 @@
+INPUT(
+./release\main.o
+./release\mainwindow.o
+./release\editor.o
+./release\jsonio.o
+./release\util.o
+./release\property.o
+./release\propertymodel.o
+./release\gameobjectmodel.o
+./release\gameobject.o
+./release\config.o
+./release\qrc_icons.o
+./release\moc_mainwindow.o
+./release\moc_editor.o
+./release\moc_propertymodel.o
+./release\moc_gameobjectmodel.o
+);
