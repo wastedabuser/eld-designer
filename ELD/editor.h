@@ -1,6 +1,7 @@
 #ifndef EDITOR_H
 #define EDITOR_H
 
+#include "gameobjectcontainer.h"
 #include "gameobjectmodel.h"
 
 #include <QWidget>
@@ -20,6 +21,7 @@ class Editor : public QWidget {
 	QList<QJsonObject> getPropertiesForType(const QString &typeName);
 	void save();
 	void load(const QString &fileNm);
+	void addNode(const QModelIndex &index);
 
 	int tabIndex;
 	QString fileName;
@@ -33,9 +35,10 @@ class Editor : public QWidget {
 
 	void on_addRootNode_clicked();
 
-	private:
+  private:
 	Ui::Editor *ui;
 	GameObjectModel *gameObjectModel;
+	GameObjectContainer *gameObjectContainer;
 };
 
 #endif // EDITOR_H

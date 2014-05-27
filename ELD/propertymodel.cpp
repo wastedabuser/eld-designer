@@ -1,5 +1,6 @@
 #include "config.h"
 #include "propertymodel.h"
+#include "util.h"
 
 #include <QtGui>
 #include <QJsonObject>
@@ -45,6 +46,7 @@ bool PropertyModel::setData(const QModelIndex &index, const QVariant &value, int
         Property *item = getItem(index);
         item->setData(index.column(), value);
 
+		emit propertyChanged(item);
         emit dataChanged(index, index);
         return true;
     }
@@ -75,6 +77,7 @@ QJsonObject PropertyModel::getJsonObject() {
 
 void PropertyModel::setJsonObject(const QString &typeName, const QJsonObject &propData) {
 	QList<QJsonObject> propList = Config::getPropertiesForType(typeName);
+	QJsonObject propDefinition = Config::typesDefinitions[typeName];
 	if (propList.isEmpty()) return;
 
 	beginInsertRows(QModelIndex(), 0, propList.size() - 1);
@@ -82,8 +85,54 @@ void PropertyModel::setJsonObject(const QString &typeName, const QJsonObject &pr
 		QJsonObject propertyObj = propList[i];
 		QString propName = propertyObj["name"].toString();
 		QString propVal = propData[propName].toString();
+		QString defaultVal;
+		if (propDefinition.contains(propName)) defaultVal = propDefinition[propName].toString();
+
+		if (defaultVal.left(1) == "$") tieProperty(defaultVal.right(defaultVal.length() - 1), propName);
+		else if (propVal.isEmpty()) propVal = defaultVal;
+
 		appendPropertyItem(propName, propVal, propertyObj);
 	}
 	endInsertRows();
 }
 
+QString PropertyModel::getPropertyValue(const QString &name, const QString &typeName) {
+	QString _name = name;
+	if (tiedProperties.contains(name)) _name = tiedProperties[name];
+
+	for (int i = 0; i < properties.size(); ++i) {
+		if (properties[i]->name == _name) return properties[i]->value;
+	}
+	QJsonObject propDefinition = Config::typesDefinitions[typeName];
+	if (propDefinition.contains(_name)) return propDefinition[_name].toString();
+	return QString();
+}
+
+void PropertyModel::setPropertyValue(const QString &name, const QString &value) {
+	QString _name = name;
+	if (tiedProperties.contains(name)) _name = tiedProperties[name];
+
+	for (int i = 0; i < properties.size(); ++i) {
+		if (properties[i]->name == _name) {
+			properties[i]->value = value;
+			emit dataChanged(QModelIndex().sibling(i,1), QModelIndex().sibling(i,1));
+			return;
+		}
+	}
+}
+
+bool PropertyModel::hasProperty(const QString &name, const QString &typeName) {
+	QString _name = name;
+	if (tiedProperties.contains(name))_name = tiedProperties[name];
+
+	for (int i = 0; i < properties.size(); ++i) {
+		if (properties[i]->name == _name) return true;
+	}
+	QJsonObject propDefinition = Config::typesDefinitions[typeName];
+	if (propDefinition.contains(_name)) return true;
+	return false;
+}
+
+void PropertyModel::tieProperty(const QString &name, const QString &toName) {
+	tiedProperties[name] = toName;
+}

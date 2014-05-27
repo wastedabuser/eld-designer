@@ -4,6 +4,7 @@
 #include "gameobjectmodel.h"
 #include "ui_editor.h"
 #include "config.h"
+#include "gameobjectcontainer.h"
 
 #include <QJsonArray>
 #include <QJsonObject>
@@ -17,6 +18,9 @@ Editor::Editor(QWidget *parent) : QWidget(parent),
 	gameObjectModel = new GameObjectModel();
 	ui->treeView->setModel(gameObjectModel);
 	ui->nodeType->addItems(Config::typesList);
+
+	gameObjectContainer = new GameObjectContainer();
+	ui->scrollArea->setWidget(gameObjectContainer);
 }
 
 Editor::~Editor() {
@@ -43,12 +47,17 @@ void Editor::save() {
 	}
 }
 
+void Editor::addNode(const QModelIndex &index) {
+	QString typeName = ui->nodeType->currentText();
+	GameObject *item = gameObjectModel->createGameObject(typeName, index);
+	if (item->hasView())
+		gameObjectContainer->addGameObject(item);
+}
+
 void Editor::on_addNode_clicked() {
     QTreeView *view = ui->treeView;
     QModelIndex index = view->selectionModel()->currentIndex();
-
-    QString typeName = ui->nodeType->currentText();
-	gameObjectModel->createGameObject(typeName, index);
+	addNode(index);
 }
 
 void Editor::on_removeNode_clicked() {
@@ -56,7 +65,10 @@ void Editor::on_removeNode_clicked() {
     QModelIndex index = view->selectionModel()->currentIndex();
 	if (!index.isValid()) return;
 
-	gameObjectModel->removeGameObject(index);
+	GameObject *item = gameObjectModel->removeGameObject(index);
+	if (item->hasView())
+		gameObjectContainer->removeGameObject(item);
+
 	view->selectionModel()->clearCurrentIndex();
 	view->clearSelection();
 }
@@ -66,6 +78,5 @@ void Editor::on_treeView_clicked(const QModelIndex &index) {
 }
 
 void Editor::on_addRootNode_clicked() {
-	QString typeName = ui->nodeType->currentText();
-	gameObjectModel->createGameObject(typeName, QModelIndex());
+	addNode(QModelIndex());
 }

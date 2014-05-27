@@ -25,9 +25,17 @@ class PropertyModel : public QAbstractTableModel {
     void appendPropertyItem(QString &name, QString &value, QJsonObject &options);
 	QJsonObject getJsonObject();
 	void setJsonObject(const QString &typeName, const QJsonObject &propData);
+	QString getPropertyValue(const QString &name, const QString &typeName);
+	void setPropertyValue(const QString &name, const QString &value);
+	bool hasProperty(const QString &name, const QString &typeName);
+	void tieProperty(const QString &name, const QString &toName);
+
+  signals:
+	void propertyChanged(Property *);
 
   private:
     QList<Property*> properties;
+	QHash<QString, QString> tiedProperties;
 
 };
 

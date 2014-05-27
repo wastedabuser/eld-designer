@@ -108,21 +108,25 @@ void GameObjectModel::setJson(const QJsonDocument &doc) {
 	endInsertRows();
 }
 
-void GameObjectModel::createGameObject(const QString &typeName, const QModelIndex &index) {
+GameObject *GameObjectModel::createGameObject(const QString &typeName, const QModelIndex &index) {
 	GameObject *item = getItem(index);
 
 	beginInsertRows(index, item->childCount(), item->childCount());
 	QJsonObject obj;
 	obj["type"] = typeName;
 	obj["id"] = getNextGameObjectId(typeName);
-	item->appendChild(obj);
+	GameObject *child = item->appendChild(obj);
 	endInsertRows();
+
+	return child;
 }
 
-void GameObjectModel::removeGameObject(const QModelIndex &index) {
+GameObject *GameObjectModel::removeGameObject(const QModelIndex &index) {
 	GameObject *item = getItem(index);
 
 	beginRemoveRows(index, index.row(), index.row());
 	item->parent()->removeChild(index.row());
 	endRemoveRows();
+
+	return item;
 }

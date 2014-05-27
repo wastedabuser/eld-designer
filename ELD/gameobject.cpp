@@ -66,11 +66,24 @@ void GameObject::createChildrenFromJsonArray(const QJsonArray &list) {
 	}
 }
 
-void GameObject::appendChild(const QJsonObject &obj) {
+GameObject *GameObject::appendChild(const QJsonObject &obj) {
 	GameObject *item = new GameObject(obj, this);
 	childItems.append(item);
+	return item;
 }
 
 void GameObject::removeChild(int index) {
 	childItems.removeAt(index);
+}
+
+QString GameObject::getPropertyValue(const QString &name) {
+	return propertyModel->getPropertyValue(name, type);
+}
+
+void GameObject::setPropertyValue(const QString &name, const QString &value) {
+	propertyModel->setPropertyValue(name, value);
+}
+
+bool GameObject::hasView() {
+	return propertyModel->hasProperty("texture", type) || propertyModel->hasProperty("shape", type);
 }

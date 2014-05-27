@@ -6,6 +6,7 @@
 QHash<QString, QJsonArray> Config::propertiesByObjectType = QHash<QString, QJsonArray>();
 QJsonObject Config::propertiesRef = QJsonObject();
 QStringList Config::typesList = QStringList();
+QHash<QString, QJsonObject> Config::typesDefinitions = QHash<QString, QJsonObject>();
 
 void Config::setConfig(const QJsonDocument &configJson) {
 	QJsonObject configObj = configJson.object();
@@ -16,6 +17,7 @@ void Config::setConfig(const QJsonDocument &configJson) {
 		QJsonObject typeObj = objectsArray[i].toObject();
 		QString typeName = typeObj["type"].toString();
 		Config::typesList.append(typeName);
+		Config::typesDefinitions.insert(typeName, typeObj);
 		Config::propertiesByObjectType.insert(typeName, typeObj["properties"].toArray());
 	}
 	Config::propertiesRef = configObj["properties"].toObject();

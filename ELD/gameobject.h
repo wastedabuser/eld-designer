@@ -1,6 +1,7 @@
 #ifndef GAMEOBJECT_H
 #define GAMEOBJECT_H
 
+#include "gameobjectview.h"
 #include "propertymodel.h"
 
 #include <QList>
@@ -20,12 +21,15 @@ class GameObject {
 	QVariant data() const;
 	GameObject *parent();
 
-	void appendChild(const QJsonObject &obj);
+	GameObject *appendChild(const QJsonObject &obj);
 	void removeChild(int index);
 	QJsonArray getChildJsonArray();
 	QJsonObject getJsonObject();
 	void createChildrenFromJsonArray(const QJsonArray &list);
 	void createPropertiesFromJsonObject(const QJsonObject &obj);
+	QString getPropertyValue(const QString &name);
+	void setPropertyValue(const QString &name, const QString &value);
+	bool hasView();
 
 	QString type;
 	QString id;

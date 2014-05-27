@@ -21,7 +21,10 @@ SOURCES += main.cpp\
     propertymodel.cpp \
     gameobjectmodel.cpp \
     gameobject.cpp \
-    config.cpp
+    config.cpp \
+    gameobjectview.cpp \
+    hoverpoints.cpp \
+    gameobjectcontainer.cpp
 
 HEADERS  += mainwindow.h \
     editor.h \
@@ -31,10 +34,14 @@ HEADERS  += mainwindow.h \
     propertymodel.h \
     gameobjectmodel.h \
     gameobject.h \
-    config.h
+    config.h \
+    gameobjectview.h \
+    hoverpoints.h \
+    gameobjectcontainer.h
 
 FORMS    += mainwindow.ui \
-    editor.ui
+    editor.ui \
+    gameobjectcontainer.ui
 
 RESOURCES += \
     icons.qrc
