@@ -4,7 +4,6 @@
 #include "gameobjectcontainer.h"
 #include "gameobject.h"
 #include "hoverpoints.h"
-#include "property.h"
 
 #include <QWidget>
 #include <QBasicTimer>
@@ -17,16 +16,20 @@ class GameObjectView : public QObject {
 	GameObjectView(GameObjectContainer *widget, GameObject *obj);
 	~GameObjectView();
 
-	void drawPixmap();
-	void applyDelta(int dx, int dy);
+	void renderView();
+	void setDelta(int dx, int dy);
+	void setRotation(qreal r);
+	void setZoomChange(double sf);
 	QRect bouds();
 	void commitProperties();
 	void fetchProperties();
 
+	bool selected;
+
   public slots:
 	void updateCtrlPoints(const QPolygonF &);
 	void updateComplete();
-	void propertyModelUpdated(Property *);
+	void propertyModelUpdated(const QString &, const QString &);
 
   signals:
 	void viewChanged(GameObjectView *view);
@@ -36,12 +39,11 @@ class GameObjectView : public QObject {
 	GameObject *gameObject;
 	HoverPoints *pts;
 	QPolygonF ctrlPoints;
-	QImage pixmap;
+	QImage image;
 	int width;
 	int height;
-	double m_rotation;
-	double m_scale;
-	double m_shear;
+	double rotation;
+	double scaleFactor;
 };
 
 #endif // GAMEOBJECTVIEW_H

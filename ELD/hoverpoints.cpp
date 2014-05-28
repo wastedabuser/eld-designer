@@ -104,27 +104,12 @@ bool HoverPoints::eventFilter(QObject *object, QEvent *event) {
 				movePoint(m_currentIndex, ((QMouseEvent *)event)->pos());
 			break;
 
-		case QEvent::Resize: {
-			QResizeEvent *e = (QResizeEvent *) event;
-			if (e->oldSize().width() == 0 || e->oldSize().height() == 0)
-				break;
-			qreal stretch_x = e->size().width() / qreal(e->oldSize().width());
-			qreal stretch_y = e->size().height() / qreal(e->oldSize().height());
-			for (int i=0; i<m_points.size(); ++i) {
-				QPointF p = m_points[i];
-				movePoint(i, QPointF(p.x() * stretch_x, p.y() * stretch_y), false);
-			}
-
-			firePointChange();
-			break;
-		}
-
 		case QEvent::Paint: {
 			QWidget *that_widget = m_widget;
 			m_widget = 0;
 			QApplication::sendEvent(object, event);
 			m_widget = that_widget;
-			paintPoints();
+			renderPoints();
 			return true;
 		}
 		default:
@@ -136,7 +121,7 @@ bool HoverPoints::eventFilter(QObject *object, QEvent *event) {
 }
 
 
-void HoverPoints::paintPoints() {
+void HoverPoints::renderPoints() {
 	QPainter p(m_widget);
 
 	p.setRenderHint(QPainter::Antialiasing);
@@ -187,6 +172,12 @@ void HoverPoints::setPoints(const QPolygonF &points) {
 	}
 }
 
+void HoverPoints::setZoomChange(double sf) {
+	QTransform trans;
+	trans = trans.scale(sf, sf);
+	m_points = trans.map(m_points);
+	firePointChange();
+}
 
 void HoverPoints::movePoint(int index, const QPointF &point, bool emitUpdate) {
 	m_points[index] = point;

@@ -6,14 +6,15 @@
 #include <QPainterPath>
 
 const int alpha = 155;
+const QColor defaultColor = QColor(255, 0, 0, alpha);
+const QColor selectedColor = QColor(0, 255, 0, alpha);
 
 GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj) : QObject(widget) {
 
 	container = widget;
 	gameObject = obj;
-	m_rotation = 0.0;
-	m_scale = 1.0;
-	m_shear = 0.0;
+	rotation = 0;
+	scaleFactor = 1;
 
 	fetchProperties();
 
@@ -36,8 +37,8 @@ GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj) : Q
 	connect(pts, SIGNAL(pointsChangeComplete()),
 			this, SLOT(updateComplete()));
 
-	connect(gameObject->propertyModel, SIGNAL(propertyChanged(Property *)),
-			this, SLOT(propertyModelUpdated(Property *)));
+	connect(gameObject->propertyModel, SIGNAL(propertyChanged(const QString &, const QString &)),
+			this, SLOT(propertyModelUpdated(const QString &, const QString &)));
 
 }
 
@@ -45,7 +46,7 @@ GameObjectView::~GameObjectView() {
 	delete pts;
 }
 
-void GameObjectView::drawPixmap() {
+void GameObjectView::renderView() {
 	QPainter p(container);
 
 	p.setRenderHint(QPainter::Antialiasing);
@@ -55,13 +56,12 @@ void GameObjectView::drawPixmap() {
 	p.translate(ctrlPoints.at(0) - center);
 
 	p.translate(center);
-	p.rotate(m_rotation);
-	p.scale(m_scale, m_scale);
-	p.shear(0, m_shear);
+	p.rotate(rotation);
+	p.scale(scaleFactor, scaleFactor);
 	p.translate(-center);
 
-	if (!pixmap.isNull()) p.drawImage(QPointF(0, 0), pixmap);
-	p.setPen(QPen(QColor(255, 0, 0, alpha), 0.25, Qt::SolidLine, Qt::FlatCap, Qt::BevelJoin));
+	if (!image.isNull()) p.drawImage(QPointF(0, 0), image);
+	p.setPen(QPen(selected ? selectedColor : defaultColor, 1 / scaleFactor, Qt::SolidLine, Qt::FlatCap, Qt::BevelJoin));
 	p.setBrush(Qt::NoBrush);
 	p.drawRect(QRectF(0, 0, width, height).adjusted(-2, -2, 2, 2));
 }
@@ -80,30 +80,62 @@ void GameObjectView::updateCtrlPoints(const QPolygonF &points) {
 	ctrlPoints = points;
 
 	QLineF line(ctrlPoints.at(0), ctrlPoints.at(1));
-	m_rotation = line.angle(QLineF(0, 0, 1, 0));
+	rotation = line.angle(QLineF(0, 0, 1, 0));
 	if (line.dy() < 0)
-		m_rotation = 360 - m_rotation;
-
-
+		rotation = 360 - rotation;
 }
 
-void GameObjectView::applyDelta(int dx, int dy) {
+void GameObjectView::setRotation(qreal r) {
+	qreal old_rot = rotation;
+	rotation = r;
+
+	QPointF center(pts->points().at(0));
+	QMatrix m;
+	m.translate(center.x(), center.y());
+	m.rotate(rotation - old_rot);
+	m.translate(-center.x(), -center.y());
+	pts->setPoints(pts->points() * m);
+}
+
+void GameObjectView::setZoomChange(double sf) {
+	scaleFactor *= sf;
+	QTransform trans;
+	trans = trans.scale(sf, sf);
+	ctrlPoints = trans.map(ctrlPoints);
+	pts->setZoomChange(sf);
+}
+
+void GameObjectView::setDelta(int dx, int dy) {
+	if (dx == 0 && dy == 0) return;
+
 	for (int i = 0; i < ctrlPoints.size(); i++) {
 		ctrlPoints[i].setX(ctrlPoints[i].x() + dx);
 		ctrlPoints[i].setY(ctrlPoints[i].y() + dy);
 	}
-	//Util::warn("x: " + QString::number((int)ctrlPoints[0].x()));
-	//Util::warn("y: " + QString::number((int)ctrlPoints[0].y()));
 	pts->setPoints(ctrlPoints);
-	pts->firePointChange();
 }
 
 void GameObjectView::updateComplete() {
 	emit viewChanged(this);
 }
 
-void GameObjectView::propertyModelUpdated(Property *item) {
-	fetchProperties();
+void GameObjectView::propertyModelUpdated(const QString &name, const QString &value) {
+	if (name == "texture") {
+		fetchProperties();
+	} else if (name == "y") {
+		int dy = value.toInt() * scaleFactor - ctrlPoints[0].y();
+		setDelta(0, dy);
+	} else if (name == "x") {
+		int dx = value.toInt() * scaleFactor - ctrlPoints[0].x();
+		setDelta(dx, 0);
+	} else if (name == "width") {
+		width = value.toInt() * scaleFactor;
+	} else if (name == "height") {
+		height = value.toInt() * scaleFactor;
+	} else if (name == "rotation") {
+		setRotation(value.toFloat());
+	}
+	updateComplete();
 }
 
 QRect GameObjectView::bouds() {
@@ -111,21 +143,20 @@ QRect GameObjectView::bouds() {
 }
 
 void GameObjectView::fetchProperties() {
-	width = gameObject->getPropertyValue("width").toInt();
-	height = gameObject->getPropertyValue("height").toInt();
+	width = gameObject->getPropertyValue("width").toInt() * scaleFactor;
+	height = gameObject->getPropertyValue("height").toInt() * scaleFactor;
 	QString path = gameObject->getPropertyValue("texture");
 	if (!path.isEmpty()) {
-		pixmap = QImage(path);
-		if (!pixmap.isNull()) {
-			width = pixmap.width();
-			height = pixmap.height();
+		image = QImage(path);
+		if (!image.isNull()) {
+			width = image.width() * scaleFactor;
+			height = image.height() * scaleFactor;
 		}
 	}
-	updateComplete();
 }
 
 void GameObjectView::commitProperties() {
-	gameObject->setPropertyValue("x", QString::number((int)ctrlPoints[0].x()));
-	gameObject->setPropertyValue("y", QString::number((int)ctrlPoints[0].y()));
-	gameObject->setPropertyValue("rotation", QString::number(m_rotation));
+	gameObject->setPropertyValue("x", QString::number(qRound(ctrlPoints[0].x() / scaleFactor)));
+	gameObject->setPropertyValue("y", QString::number(qRound(ctrlPoints[0].y() / scaleFactor)));
+	gameObject->setPropertyValue("rotation", QString::number(rotation));
 }

@@ -7,5 +7,7 @@
         <file>icons/table_add.png</file>
         <file>icons/table_row_delete.png</file>
         <file>icons/table_row_insert.png</file>
+        <file>icons/magifier_zoom_out.png</file>
+        <file>icons/magnifier_zoom_in.png</file>
     </qresource>
 </RCC>

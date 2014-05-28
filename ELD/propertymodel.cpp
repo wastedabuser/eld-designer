@@ -45,19 +45,13 @@ bool PropertyModel::setData(const QModelIndex &index, const QVariant &value, int
 
         Property *item = getItem(index);
         item->setData(index.column(), value);
-
-		emit propertyChanged(item);
         emit dataChanged(index, index);
+
+		triggerPropertyChanged(item);
         return true;
     }
     return false;
 }
-
-bool PropertyModel::insertRows (int row, int count, const QModelIndex & parent) {
-    //properties.insert(new Property(name, data, options));
-    return false;
-}
-
 
 Property *PropertyModel::getItem(const QModelIndex &index) const {
     return properties.at(index.row());
@@ -135,4 +129,19 @@ bool PropertyModel::hasProperty(const QString &name, const QString &typeName) {
 
 void PropertyModel::tieProperty(const QString &name, const QString &toName) {
 	tiedProperties[name] = toName;
+}
+
+void PropertyModel::triggerPropertyChanged(Property *item) {
+	QString name = item->name;
+	if (!tiedProperties.isEmpty()) {
+		QList<QString> tied = tiedProperties.keys();
+		for (int i = 0; i < tied.size(); i++) {
+			if (tiedProperties[tied[i]] == name) {
+				name = tied[i];
+				break;
+			}
+		}
+	}
+	Util::warn("Changed " + name);
+	emit propertyChanged(name, item->value);
 }

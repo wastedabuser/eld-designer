@@ -32,7 +32,11 @@ class MainWindow : public QMainWindow {
 
     void on_actionSave_triggered();
 
-  private:
+	void on_actionZoom_in_triggered();
+
+	void on_actionZoom_out_triggered();
+
+	private:
     QString settingsFile;
     QJsonDocument settingsJson;
 

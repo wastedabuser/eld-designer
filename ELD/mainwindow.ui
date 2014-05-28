@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>ELD</string>
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
@@ -96,6 +96,9 @@
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
+   <addaction name="separator"/>
+   <addaction name="actionZoom_in"/>
+   <addaction name="actionZoom_out"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
   <action name="actionNew">
@@ -142,6 +145,24 @@
   <action name="actionSelect_config_file">
    <property name="text">
     <string>Select config file</string>
+   </property>
+  </action>
+  <action name="actionZoom_in">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/magnifier_zoom_in.png</normaloff>:/icons/magnifier_zoom_in.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom in</string>
+   </property>
+  </action>
+  <action name="actionZoom_out">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/magifier_zoom_out.png</normaloff>:/icons/magifier_zoom_out.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom out</string>
    </property>
   </action>
  </widget>

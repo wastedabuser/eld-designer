@@ -93,3 +93,19 @@ void MainWindow::on_actionSave_triggered() {
     Editor *curEditor = (Editor*) tabs->currentWidget();
     curEditor->save();
 }
+
+void MainWindow::on_actionZoom_in_triggered() {
+	QTabWidget *tabs = ui->tabWidget;
+	if (tabs->currentWidget() == 0) return;
+
+	Editor *curEditor = (Editor*) tabs->currentWidget();
+	curEditor->zoomIn();
+}
+
+void MainWindow::on_actionZoom_out_triggered() {
+	QTabWidget *tabs = ui->tabWidget;
+	if (tabs->currentWidget() == 0) return;
+
+	Editor *curEditor = (Editor*) tabs->currentWidget();
+	curEditor->zoomOut();
+}

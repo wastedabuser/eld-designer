@@ -31,7 +31,7 @@ class HoverPoints : public QObject {
 
 	bool eventFilter(QObject *object, QEvent *event);
 
-	void paintPoints();
+	void renderPoints();
 
 	QPolygonF points() const {
 		return m_points;
@@ -72,6 +72,7 @@ class HoverPoints : public QObject {
 		return m_editable;
 	}
 
+	void firePointChange();
 	QRect getBounds();
 
   public slots:
@@ -85,8 +86,7 @@ class HoverPoints : public QObject {
 	void pointsChangeComplete();
 
   public:
-	void firePointChange();
-	QString name;
+	void setZoomChange(double sf);
 
   private:
 	QRectF pointBoundingRect(int i) const;

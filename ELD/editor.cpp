@@ -5,6 +5,8 @@
 #include "ui_editor.h"
 #include "config.h"
 #include "gameobjectcontainer.h"
+#include "propertyeditordelegate.h"
+#include "filepropertydelegate.h"
 
 #include <QJsonArray>
 #include <QJsonObject>
@@ -15,12 +17,16 @@ Editor::Editor(QWidget *parent) : QWidget(parent),
 	ui(new Ui::Editor) {
     ui->setupUi(this);
 
+	ui->nodeType->addItems(Config::typesList);
+
 	gameObjectModel = new GameObjectModel();
 	ui->treeView->setModel(gameObjectModel);
-	ui->nodeType->addItems(Config::typesList);
+
+	ui->tableView->setItemDelegate(new PropertyEditorDelegate());
 
 	gameObjectContainer = new GameObjectContainer();
 	ui->scrollArea->setWidget(gameObjectContainer);
+
 }
 
 Editor::~Editor() {
@@ -45,6 +51,14 @@ void Editor::save() {
 		QFileInfo info1(fileName);
 		tabs->setTabText(tabIndex, info1.fileName());
 	}
+}
+
+void Editor::zoomIn() {
+	gameObjectContainer->zoom(true);
+}
+
+void Editor::zoomOut() {
+	gameObjectContainer->zoom(false);
 }
 
 void Editor::addNode(const QModelIndex &index) {
@@ -74,7 +88,9 @@ void Editor::on_removeNode_clicked() {
 }
 
 void Editor::on_treeView_clicked(const QModelIndex &index) {
-    ui->tableView->setModel(gameObjectModel->getItem(index)->propertyModel);
+	GameObject *item = gameObjectModel->getItem(index);
+	ui->tableView->setModel(item->propertyModel);
+	gameObjectContainer->selectGameObject(item);
 }
 
 void Editor::on_addRootNode_clicked() {

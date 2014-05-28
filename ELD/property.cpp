@@ -1,6 +1,7 @@
 #include "property.h"
 
 #include <QAbstractItemModel>
+#include <QJsonArray>
 
 Property::Property(QString &nm, QString &val, QJsonObject &opt) {
     name = nm;
@@ -26,4 +27,17 @@ Qt::ItemFlags Property::flags(int column) const {
 bool Property::setData(int column, const QVariant &val) {
 	if (column == 0) name = QVariant(val).toString();
 	else value = QVariant(val).toString();
+	return true;
+}
+
+QString Property::getType() {
+	return options["type"].toString();
+}
+
+QString Property::getMeta() {
+	return options["meta"].toString();
+}
+
+QJsonArray Property::getOptions() {
+	return options["options"].toArray();
 }

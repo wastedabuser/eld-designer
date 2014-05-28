@@ -22,6 +22,8 @@ class Editor : public QWidget {
 	void save();
 	void load(const QString &fileNm);
 	void addNode(const QModelIndex &index);
+	void zoomIn();
+	void zoomOut();
 
 	int tabIndex;
 	QString fileName;
