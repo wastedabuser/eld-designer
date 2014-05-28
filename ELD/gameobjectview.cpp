@@ -15,8 +15,10 @@ GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj) : Q
 	gameObject = obj;
 	rotation = 0;
 	scaleFactor = 1;
+	selected = false;
 
-	fetchProperties();
+	fetchSizeProperties();
+	fetchTextureProperty();
 
 	pts = new HoverPoints(widget, HoverPoints::CircleShape);
 	pts->setConnectionType(HoverPoints::LineConnection);
@@ -29,7 +31,8 @@ GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj) : Q
 	int pw = width / 2;
 	int ph = height / 2;
 	ctrlPoints << QPointF(pw, ph) << QPointF(pw + 100, ph);
-	pts->setPoints(ctrlPoints);
+
+	fetchPositionProperties();
 
 	connect(pts, SIGNAL(pointsChanged(const QPolygonF&)),
 			this, SLOT(updateCtrlPoints(const QPolygonF &)));
@@ -89,12 +92,13 @@ void GameObjectView::setRotation(qreal r) {
 	qreal old_rot = rotation;
 	rotation = r;
 
-	QPointF center(pts->points().at(0));
+	QPointF center(ctrlPoints.at(0));
 	QMatrix m;
 	m.translate(center.x(), center.y());
 	m.rotate(rotation - old_rot);
 	m.translate(-center.x(), -center.y());
-	pts->setPoints(pts->points() * m);
+	ctrlPoints = m.map(ctrlPoints);
+	pts->setPoints(ctrlPoints);
 }
 
 void GameObjectView::setZoomChange(double sf) {
@@ -121,7 +125,7 @@ void GameObjectView::updateComplete() {
 
 void GameObjectView::propertyModelUpdated(const QString &name, const QString &value) {
 	if (name == "texture") {
-		fetchProperties();
+		fetchTextureProperty();
 	} else if (name == "y") {
 		int dy = value.toInt() * scaleFactor - ctrlPoints[0].y();
 		setDelta(0, dy);
@@ -134,6 +138,8 @@ void GameObjectView::propertyModelUpdated(const QString &name, const QString &va
 		height = value.toInt() * scaleFactor;
 	} else if (name == "rotation") {
 		setRotation(value.toFloat());
+	} else {
+		return;
 	}
 	updateComplete();
 }
@@ -142,9 +148,19 @@ QRect GameObjectView::bouds() {
 	return pts->getBounds();
 }
 
-void GameObjectView::fetchProperties() {
+void GameObjectView::fetchSizeProperties() {
 	width = gameObject->getPropertyValue("width").toInt() * scaleFactor;
 	height = gameObject->getPropertyValue("height").toInt() * scaleFactor;
+}
+
+void GameObjectView::fetchPositionProperties() {
+	int dx = gameObject->getPropertyValue("x").toInt() * scaleFactor - ctrlPoints[0].x();
+	int dy = gameObject->getPropertyValue("y").toInt() * scaleFactor - ctrlPoints[0].y();
+	setDelta(dx, dy);
+	setRotation(gameObject->getPropertyValue("rotation").toDouble());
+}
+
+void GameObjectView::fetchTextureProperty() {
 	QString path = gameObject->getPropertyValue("texture");
 	if (!path.isEmpty()) {
 		image = QImage(path);

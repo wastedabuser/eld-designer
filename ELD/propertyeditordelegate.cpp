@@ -28,7 +28,7 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 		QJsonArray options = prop->getOptions();
 		for (int i = 0; i < options.size(); i++) {
 			QJsonObject obj = options[i].toObject();
-			cb->addItem(obj["key"].toString(), QVariant(obj["value"].toString()));
+			cb->addItem(obj["type"].toString(), QVariant(obj));
 		}
 		return cb;
 	} else if (propertyType == "file") {
@@ -64,7 +64,7 @@ void PropertyEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &i
 	if (propertyType == "file") {
 		lineEditor->setText(currentText);
 	} else if (QComboBox *cb = qobject_cast<QComboBox *>(editor)) {
-		int cbIndex = cb->findData(currentText);
+		int cbIndex = cb->findText(currentText);
 		if(cbIndex >= 0)
 			cb->setCurrentIndex(cbIndex);
 	} else {
@@ -77,7 +77,9 @@ void PropertyEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *m
 	if (propertyType == "file") {
 		model->setData(index, lineEditor->text());
 	} else if (QComboBox *cb = qobject_cast<QComboBox *>(editor)) {
-		model->setData(index, cb->currentData(), Qt::EditRole);
+		PropertyModel *pm = (PropertyModel*) model;
+		pm->setData(index, cb->currentText(), Qt::EditRole);
+		pm->setPropertyTrigger(cb->currentData().toJsonObject());
 	} else
 		QStyledItemDelegate::setModelData(editor, model, index);
 }

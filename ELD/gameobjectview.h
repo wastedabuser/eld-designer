@@ -22,7 +22,9 @@ class GameObjectView : public QObject {
 	void setZoomChange(double sf);
 	QRect bouds();
 	void commitProperties();
-	void fetchProperties();
+	void fetchSizeProperties();
+	void fetchPositionProperties();
+	void fetchTextureProperty();
 
 	bool selected;
 

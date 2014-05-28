@@ -2,25 +2,40 @@
 #include <QJsonObject>
 #include <QJsonArray>
 
+#include "config.h"
 #include "gameobject.h"
 #include "propertymodel.h"
 
 GameObject::GameObject(const QJsonObject &obj, GameObject *parent) {
 	parentItem = parent;
 
-	if (obj.isEmpty()) return;
+	if (obj.isEmpty()) {
+		type = Config::rootObject["type"].toString();
+	} else {
+		type = obj["type"].toString();
+		id = obj["id"].toString();
+		propertyModel = new PropertyModel(type, obj["properties"].toObject());
 
-	type = obj["type"].toString();
-	id = obj["id"].toString();
-	propertyModel = new PropertyModel(type, obj["properties"].toObject());
-
-	QJsonArray children = obj["children"].toArray();
-	if (!children.isEmpty()) createChildrenFromJsonArray(children);
+		QJsonArray children = obj["children"].toArray();
+		if (!children.isEmpty()) createChildrenFromJsonArray(children);
+	}
 }
 
 GameObject::~GameObject() {
 	qDeleteAll(childItems);
 	delete propertyModel;
+}
+
+QList<GameObject *> GameObject::getChildrenListDeep() {
+	QList<GameObject *> list;
+	for (int i = 0; i < childItems.size(); i++) {
+		list.append(childItems[i]);
+		QList<GameObject *> chList = childItems[i]->getChildrenListDeep();
+		for (int j = 0; j < chList.size(); j++) {
+			list.append(chList[j]);
+		}
+	}
+	return list;
 }
 
 GameObject *GameObject::child(int number) {
@@ -52,11 +67,14 @@ QJsonArray GameObject::getChildJsonArray() {
 
 QJsonObject GameObject::getJsonObject() {
 	QJsonObject obj;
-	obj["type"] = type;
-	obj["id"] = id;
+	if (!type.isEmpty()) obj["type"] = type;
+	if (!id.isEmpty()) obj["id"] = id;
 	QJsonArray children = getChildJsonArray();
 	if (!children.isEmpty()) obj["children"] = children;
-	obj["properties"] = propertyModel->getJsonObject();
+	if (propertyModel) {
+		QJsonObject properties = propertyModel->getJsonObject();
+		if (!properties.isEmpty()) obj["properties"] = properties;
+	}
 	return obj;
 }
 

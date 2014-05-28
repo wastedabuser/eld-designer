@@ -46,8 +46,8 @@ bool PropertyModel::setData(const QModelIndex &index, const QVariant &value, int
         Property *item = getItem(index);
         item->setData(index.column(), value);
         emit dataChanged(index, index);
+		emit propertyChanged(item->name, item->value);
 
-		triggerPropertyChanged(item);
         return true;
     }
     return false;
@@ -81,9 +81,7 @@ void PropertyModel::setJsonObject(const QString &typeName, const QJsonObject &pr
 		QString propVal = propData[propName].toString();
 		QString defaultVal;
 		if (propDefinition.contains(propName)) defaultVal = propDefinition[propName].toString();
-
-		if (defaultVal.left(1) == "$") tieProperty(defaultVal.right(defaultVal.length() - 1), propName);
-		else if (propVal.isEmpty()) propVal = defaultVal;
+		if (propVal.isEmpty()) propVal = defaultVal;
 
 		appendPropertyItem(propName, propVal, propertyObj);
 	}
@@ -91,23 +89,17 @@ void PropertyModel::setJsonObject(const QString &typeName, const QJsonObject &pr
 }
 
 QString PropertyModel::getPropertyValue(const QString &name, const QString &typeName) {
-	QString _name = name;
-	if (tiedProperties.contains(name)) _name = tiedProperties[name];
-
 	for (int i = 0; i < properties.size(); ++i) {
-		if (properties[i]->name == _name) return properties[i]->value;
+		if (properties[i]->name == name) return properties[i]->value;
 	}
 	QJsonObject propDefinition = Config::typesDefinitions[typeName];
-	if (propDefinition.contains(_name)) return propDefinition[_name].toString();
+	if (propDefinition.contains(name)) return propDefinition[name].toString();
 	return QString();
 }
 
 void PropertyModel::setPropertyValue(const QString &name, const QString &value) {
-	QString _name = name;
-	if (tiedProperties.contains(name)) _name = tiedProperties[name];
-
 	for (int i = 0; i < properties.size(); ++i) {
-		if (properties[i]->name == _name) {
+		if (properties[i]->name == name) {
 			properties[i]->value = value;
 			emit dataChanged(QModelIndex().sibling(i,1), QModelIndex().sibling(i,1));
 			return;
@@ -116,32 +108,28 @@ void PropertyModel::setPropertyValue(const QString &name, const QString &value) 
 }
 
 bool PropertyModel::hasProperty(const QString &name, const QString &typeName) {
-	QString _name = name;
-	if (tiedProperties.contains(name))_name = tiedProperties[name];
-
 	for (int i = 0; i < properties.size(); ++i) {
-		if (properties[i]->name == _name) return true;
+		if (properties[i]->name == name) return true;
 	}
 	QJsonObject propDefinition = Config::typesDefinitions[typeName];
-	if (propDefinition.contains(_name)) return true;
+	if (propDefinition.contains(name)) return true;
 	return false;
 }
 
-void PropertyModel::tieProperty(const QString &name, const QString &toName) {
-	tiedProperties[name] = toName;
-}
-
-void PropertyModel::triggerPropertyChanged(Property *item) {
-	QString name = item->name;
-	if (!tiedProperties.isEmpty()) {
-		QList<QString> tied = tiedProperties.keys();
-		for (int i = 0; i < tied.size(); i++) {
-			if (tiedProperties[tied[i]] == name) {
-				name = tied[i];
-				break;
-			}
+void PropertyModel::setPropertyTrigger(const QJsonObject &triggers) {
+	QString name;
+	QStringList tied = triggers.keys();
+	for (int i = 0; i < tied.size(); i++) {
+		QString k = tied[i];
+		if (k.left(1) == "$") {
+			name = k.right(k.length() - 1);
+			break;
 		}
 	}
-	Util::warn("Changed " + name);
-	emit propertyChanged(name, item->value);
+	if (!name.isEmpty()) {
+		QString value = triggers["$" + name].toString();
+		setPropertyValue(name, value);
+		Util::warn("Changed tied property " + name);
+		emit propertyChanged(name, value);
+	}
 }

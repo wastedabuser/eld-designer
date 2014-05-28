@@ -27,15 +27,13 @@ class PropertyModel : public QAbstractTableModel {
 	QString getPropertyValue(const QString &name, const QString &typeName);
 	void setPropertyValue(const QString &name, const QString &value);
 	bool hasProperty(const QString &name, const QString &typeName);
-	void tieProperty(const QString &name, const QString &toName);
-	void triggerPropertyChanged(Property *item);
+	void setPropertyTrigger(const QJsonObject &triggers);
 
   signals:
 	void propertyChanged(const QString &name, const QString &value);
 
   private:
     QList<Property*> properties;
-	QHash<QString, QString> tiedProperties;
 
 };
 

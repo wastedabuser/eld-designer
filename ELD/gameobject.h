@@ -15,6 +15,7 @@ class GameObject {
     ~GameObject();
 
     GameObject *child(int number);
+	QList<GameObject *> getChildrenListDeep();
     int childCount() const;
     int columnCount() const;
 	int childNumber() const;
@@ -37,7 +38,7 @@ class GameObject {
 
   private:
 	GameObject *parentItem;
-    QList<GameObject*> childItems;
+	QList<GameObject *> childItems;
 
 };
 

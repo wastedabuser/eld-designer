@@ -38,7 +38,12 @@ void Editor::load(const QString &fileNm) {
 	if (fileName.isEmpty()) return;
 
 	QJsonDocument doc = JsonIO::readJson(fileName);
-	gameObjectModel->setJson(doc);
+	QList<GameObject *> list = gameObjectModel->setJson(doc);
+	for (int i = 0; i < list.size(); i++) {
+		GameObject *item = list[i];
+		if (item->hasView())
+			gameObjectContainer->addGameObject(item);
+	}
 }
 
 void Editor::save() {
@@ -64,7 +69,7 @@ void Editor::zoomOut() {
 void Editor::addNode(const QModelIndex &index) {
 	QString typeName = ui->nodeType->currentText();
 	GameObject *item = gameObjectModel->createGameObject(typeName, index);
-	if (item->hasView())
+	if (item && item->hasView())
 		gameObjectContainer->addGameObject(item);
 }
 

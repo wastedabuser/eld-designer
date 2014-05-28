@@ -26,7 +26,7 @@ class GameObjectModel : public QAbstractItemModel {
     GameObject *getItem(const QModelIndex &index) const;
 	QString getNextGameObjectId(const QString &typeName);
     QJsonDocument getJson();
-	void setJson(const QJsonDocument &doc);
+	QList<GameObject *> setJson(const QJsonDocument &doc);
 	GameObject *createGameObject(const QString &typeName, const QModelIndex &index);
 	GameObject *removeGameObject(const QModelIndex &index);
 

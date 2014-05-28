@@ -1,5 +1,7 @@
+#include <QMessageBox>
 #include <QtGui>
 
+#include "config.h"
 #include "gameobject.h"
 #include "gameobjectmodel.h"
 #include "util.h"
@@ -96,20 +98,38 @@ QString GameObjectModel::getNextGameObjectId(const QString &typeName) {
 
 QJsonDocument GameObjectModel::getJson() {
 	QJsonDocument doc;
-	doc.setArray(rootItem->getChildJsonArray());
+	doc.setObject(rootItem->getJsonObject());
 	return doc;
 }
 
-void GameObjectModel::setJson(const QJsonDocument &doc) {
-	QJsonArray list = doc.array();
-	if (list.isEmpty()) Util::warn("Document is empty");
-	beginInsertRows(QModelIndex(), 0, list.size() - 1);
+QList<GameObject *> GameObjectModel::setJson(const QJsonDocument &doc) {
+	QJsonObject obj = doc.object();
+	if (obj.isEmpty()) Util::warn("Document is empty");
+	rootItem->type = obj["type"].toString();
+
+	QJsonArray list = obj["children"].toArray();
+	if (list.isEmpty()) return QList<GameObject *>();
+	beginInsertRows(QModelIndex(), 0, 0);
 	rootItem->createChildrenFromJsonArray(list);
 	endInsertRows();
+	return rootItem->getChildrenListDeep();
 }
 
 GameObject *GameObjectModel::createGameObject(const QString &typeName, const QModelIndex &index) {
 	GameObject *item = getItem(index);
+	QJsonArray allowed = Config::alowedChildObject[item->type];
+	bool ok;
+	for (int i = 0; i < allowed.size(); i++) {
+		if (allowed[i].toString() == typeName) {
+			ok = true;
+			break;
+		}
+	}
+	if (!ok) {
+		QMessageBox messageBox;
+		messageBox.warning(0, tr("Not allowed"), tr("You can not put this type of object here"));
+		return 0;
+	}
 
 	beginInsertRows(index, item->childCount(), item->childCount());
 	QJsonObject obj;
