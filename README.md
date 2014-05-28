@@ -1,29 +1,33 @@
 # ELD Designer
 
-ELD DEsigner is a 2D non-tiled based level editor designed to be as universal and simple as possible. It contains (and will) contain only things that are general purpose and universal. It will be a simple and quick tool for prototyping level states, not designing complex gaming mechanics, effects or animations.
+ELD Designer is a 2D, non-tiled based, level editor designed to be as universal and simple as possible. It contains (and will contain) only things that are general purpose and universal. It will try to stay simple and quick tool for prototyping levels/states, not designing complex gaming mechanics, effects or animations.
 
 ## Features
 
-* Herirachy of objects defining the level structure
-* All objects and types are custom specified with their properties based on designers needs.
-* Multiple documents in one application instance
-* Arbitrary placing of graphical assets over a canvas
-* Free roation of these assets
-* Autosized canvas
+* Hierarchy of objects defining the level structure (Tree of objects);
+* All objects and types are custom specified with their properties based on designers needs;
+* Edit multiple levels in one application instance;
+* Arbitrary placement of graphical assets/objects on a canvas;
+* Free roation of objects and assets;
+* Autosized canvas;
 
-Definetly, many heavily used stuff are missing, but i guess they will find their way :)
+Definetly, many heavily used features are still missing, but i guess they will find their way :)
 
 ## Disclaimer
 
-Please, be aware that this application is in an early stage of development. It is developed as fast as possible to serve its purpose in the real world! It is not a fancy polished software.
+Please, be aware that this application is in an early stage of development. It is developed as fast as possible to serve its purpose in the real world, not as a hobby project. Do not expected it to be a fancy polished software.
 
-Based on my research for such tools it appears to contain the basic (and universal) stuff for the most time consuming tasks when designing levels for  aracade, jump&rund and action games.
+Based on my research for such tools it appears to contain most of the basic (and universal) stuff for the most time consuming tasks when designing levels for aracade, jump&rund and action games - placements of the assets and objects, definig zones and triggers.
 
-## Building
+## Building an executable
 
-The application is developed in QT 5.3. You should be able to build it for any platform.
+The application is developed in QT 5.3, visit [QT Project](http://qt-project.org/) for more info. I am developing and testing it on Windows, but it should be easy to build it for any other platform like Mac or Linux.
 
-## Bindings
+I am not releasing an executable yet, but if you don't like to mess with QT i can always send you one, just leave me a note!
+
+## Bindings with engines and frameworks
+
+In short - currently none :(
 
 The application saves its levels in a JSON format. The output files should be parsed and processed by the engine/framework/language you are using. The format is very simple! It reflects the logic which you put into the configuration of the designer itself.
 
@@ -66,9 +70,9 @@ Here is an example of a such output file:
 
 The cool thing about this level editor is that it is very flexible because there are no standart types and properties. Everything is described in a JSON configuration file and then used to design the levels.
 
-Please, be sure to point the configuration file location after you launch the application!
+So you cerate a json file and place it anywhere you like. Then be sure to point the location of the file after you launch the application (From the Tools menu)!
 
-Here is exmaple of a typical configuration.json
+Here is an exmaple of a typical configuration.json
 ```
 {
 	"rootObject": {
@@ -135,12 +139,12 @@ Here is exmaple of a typical configuration.json
 }
 ```
 
-## Other things
+## Other things to be noted
 
-UI icons by [FAM FAM FAM](http://www.famfamfam.com/lab/icons/silk/)
+UI icons by [FAM FAM FAM](http://www.famfamfam.com/lab/icons/silk/). Awesome icon pack!
 
-The aplication is developed to be used as the level editor for [Solar Coherence](http://solarcoherence.com), a strategy/arcade game.
+The aplication is developed to be used as the level editor for [Solar Coherence](http://solarcoherence.com), a space strategy/arcade game.
 
-The word "ELD" means Eldhelm-Level-Designer or just Eldhelm. The name comes from the pilot project [Battlegrounds of Eldhelm](http://eldhelm.essenceworks.com) of my start-up gamedev company [Essence](http://essenceworks.com). I am branding with the word Eldhelm all my tools and frameworks designed and built to aid in my quest to create outstanding indie games!
+The word "ELD" means Eldhelm-Level-Designer or just Eldhelm. The name comes from the pilot project [Battlegrounds of Eldhelm](http://eldhelm.essenceworks.com) of my start-up company [Essence](http://essenceworks.com). I am starting to brand with the word Eldhelm all the tools and frameworks i design and build to aid me in my quest for creating outstanding indie games!
 
 Cheers!
