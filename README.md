@@ -1,5 +1,4 @@
 # ELD Designer
-==============
 
 ELD DEsigner is a 2D non-tiled based level editor designed to be as universal and simple as possible. It contains (and will) contain only things that are general purpose and universal. It will be a simple and quick tool for prototyping level states, not designing complex gaming mechanics, effects or animations.
 
