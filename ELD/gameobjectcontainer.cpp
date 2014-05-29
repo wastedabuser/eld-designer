@@ -13,7 +13,6 @@ GameObjectContainer::GameObjectContainer(QWidget *parent) :
 	ui->setupUi(this);
 
 	canvasPadding = 100;
-	setMouseTracking(true);
 }
 
 GameObjectContainer::~GameObjectContainer() {

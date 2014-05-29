@@ -24,6 +24,7 @@ class GameObject {
 
 	GameObject *appendChild(const QJsonObject &obj);
 	void removeChild(int index);
+	void addChild(int index, GameObject *obj);
 	QJsonArray getChildJsonArray();
 	QJsonObject getJsonObject();
 	void createChildrenFromJsonArray(const QJsonArray &list);

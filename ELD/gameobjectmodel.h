@@ -27,8 +27,10 @@ class GameObjectModel : public QAbstractItemModel {
 	QString getNextGameObjectId(const QString &typeName);
     QJsonDocument getJson();
 	QList<GameObject *> setJson(const QJsonDocument &doc);
+	bool canCreateObject(const QString &typeName, const QModelIndex &index);
 	GameObject *createGameObject(const QString &typeName, const QModelIndex &index);
 	GameObject *removeGameObject(const QModelIndex &index);
+	bool moveGameObject(const QModelIndex &pindex, int offset);
 
   private:
     GameObject *rootItem;

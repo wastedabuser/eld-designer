@@ -94,6 +94,10 @@ void GameObject::removeChild(int index) {
 	childItems.removeAt(index);
 }
 
+void GameObject::addChild(int index, GameObject *obj) {
+	childItems.insert(index, obj);
+}
+
 QString GameObject::getPropertyValue(const QString &name) {
 	return propertyModel->getPropertyValue(name, type);
 }

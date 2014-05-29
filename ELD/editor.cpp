@@ -101,3 +101,28 @@ void Editor::on_treeView_clicked(const QModelIndex &index) {
 void Editor::on_addRootNode_clicked() {
 	addNode(QModelIndex());
 }
+
+void Editor::on_moveNodeUp_clicked() {
+	QTreeView *view = ui->treeView;
+	QModelIndex index = view->selectionModel()->currentIndex();
+	if (!index.isValid()) return;
+
+	if (!gameObjectModel->moveGameObject(index, -1))
+		return;
+
+	QModelIndex newIndex = gameObjectModel->index(index.row() - 1, 0, index.parent());
+	view->selectionModel()->setCurrentIndex(newIndex, QItemSelectionModel::ClearAndSelect);
+}
+
+void Editor::on_moveNodeDown_clicked() {
+	QTreeView *view = ui->treeView;
+	QModelIndex index = view->selectionModel()->currentIndex();
+	if (!index.isValid()) return;
+
+	if (!gameObjectModel->moveGameObject(index, 1))
+		return;
+
+	QModelIndex newIndex = gameObjectModel->index(index.row() + 1, 0, index.parent());
+	if (newIndex.isValid())
+		view->selectionModel()->setCurrentIndex(newIndex, QItemSelectionModel::ClearAndSelect);
+}

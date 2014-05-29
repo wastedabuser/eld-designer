@@ -26,14 +26,10 @@ int GameObjectModel::columnCount(const QModelIndex & /* parent */) const {
 }
 
 QModelIndex GameObjectModel::index(int row, int column, const QModelIndex &parent) const {
-	if (parent.isValid() && parent.column() != 0)
-		return QModelIndex();
-
 	GameObject *parentItem = getItem(parent);
-
 	GameObject *childItem = parentItem->child(row);
 	if (childItem)
-		return createIndex(row, column, childItem);
+		return createIndex(row, 0, childItem);
 	else
 		return QModelIndex();
 }
@@ -115,7 +111,7 @@ QList<GameObject *> GameObjectModel::setJson(const QJsonDocument &doc) {
 	return rootItem->getChildrenListDeep();
 }
 
-GameObject *GameObjectModel::createGameObject(const QString &typeName, const QModelIndex &index) {
+bool GameObjectModel::canCreateObject(const QString &typeName, const QModelIndex &index) {
 	GameObject *item = getItem(index);
 	QJsonArray allowed = Config::alowedChildObject[item->type];
 	bool ok;
@@ -125,12 +121,17 @@ GameObject *GameObjectModel::createGameObject(const QString &typeName, const QMo
 			break;
 		}
 	}
-	if (!ok) {
+	return ok;
+}
+
+GameObject *GameObjectModel::createGameObject(const QString &typeName, const QModelIndex &index) {
+	if (!canCreateObject(typeName, index)) {
 		QMessageBox messageBox;
-		messageBox.warning(0, tr("Not allowed"), tr("You can not put this type of object here"));
+		messageBox.warning(0, tr("Not allowed"), tr("You can not create such object under the current selection"));
 		return 0;
 	}
 
+	GameObject *item = getItem(index);
 	beginInsertRows(index, item->childCount(), item->childCount());
 	QJsonObject obj;
 	obj["type"] = typeName;
@@ -149,4 +150,19 @@ GameObject *GameObjectModel::removeGameObject(const QModelIndex &index) {
 	endRemoveRows();
 
 	return item;
+}
+
+bool GameObjectModel::moveGameObject(const QModelIndex &pindex, int offset) {
+	int of = offset + (offset > 0 ? 1: 0);
+	if (pindex.row() + of < 0) return false;
+	if (!beginMoveRows(pindex, pindex.row(), pindex.row(), pindex, pindex.row() + of))
+		return false;
+
+	GameObject *item = getItem(pindex);
+	GameObject *parent = item->parent();
+	parent->removeChild(pindex.row());
+	parent->addChild(pindex.row() + offset, item);
+	endMoveRows();
+
+	return true;
 }

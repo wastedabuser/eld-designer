@@ -37,7 +37,11 @@ class Editor : public QWidget {
 
 	void on_addRootNode_clicked();
 
-  private:
+	void on_moveNodeUp_clicked();
+
+	void on_moveNodeDown_clicked();
+
+	private:
 	Ui::Editor *ui;
 	GameObjectModel *gameObjectModel;
 	GameObjectContainer *gameObjectContainer;
