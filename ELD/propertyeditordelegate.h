@@ -25,6 +25,7 @@ class PropertyEditorDelegate : public QStyledItemDelegate {
 
   public slots:
 	void on_fileBtn_clicked();
+	void on_colorBtn_clicked();
 
 };
 

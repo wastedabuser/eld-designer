@@ -16,6 +16,8 @@ class GameObject {
 
     GameObject *child(int number);
 	QList<GameObject *> getChildrenListDeep();
+	QList<GameObject *> getChildren();
+	GameObject *cloneDeep();
     int childCount() const;
     int columnCount() const;
 	int childNumber() const;

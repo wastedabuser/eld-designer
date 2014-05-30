@@ -23,7 +23,7 @@ class GameObjectContainer : public QWidget
 		void mouseMoveEvent(QMouseEvent *);
 		void addGameObject(GameObject *obj, bool doUpdate = true);
 		void removeGameObject(GameObject *obj);
-		void initViews();
+		void updateCanvas();
 		void selectGameObject(GameObject *obj);
 		void zoom(bool out, bool wheel = false);
 		QList<GameObjectView *> getViewsForObejcts(QList<GameObject *> &list);
@@ -37,6 +37,7 @@ class GameObjectContainer : public QWidget
 		QList<GameObjectView *> views;
 		QHash<GameObject *, GameObjectView *> hViews;
 		double canvasPadding;
+		double scaleFactor;
 		double dmw;
 		double dmh;
 		double rx;

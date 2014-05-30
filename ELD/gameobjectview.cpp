@@ -5,18 +5,21 @@
 #include <QPainter>
 #include <QPainterPath>
 
-const int alpha = 155;
-const QColor defaultColor = QColor(255, 0, 0, alpha);
-const QColor selectedColor = QColor(0, 255, 0, alpha);
+const int defaultAlpha255 = 155;
+const QColor defaultColor = QColor(255, 0, 0, defaultAlpha255);
+const QColor selectedColor = QColor(0, 255, 0, defaultAlpha255);
 
-GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj) : QObject(widget) {
+GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj, double scaleF) : QObject(widget) {
 
 	container = widget;
 	gameObject = obj;
 	rotation = 0;
-	scaleFactor = 1;
+	scaleFactor = scaleF;
 	selected = false;
 	canRotate = gameObject->hasProperty("rotation");
+	hasBgColor = gameObject->hasProperty("bgcolor");
+	hasAlpha = gameObject->hasProperty("alpha");
+	alpha = 1;
 
 	fetchSizeProperties();
 	fetchTextureProperty();
@@ -25,14 +28,14 @@ GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj) : Q
 	pts->setConnectionType(HoverPoints::LineConnection);
 	pts->setEditable(false);
 	pts->setPointSize(QSize(10, 10));
-	pts->setShapeBrush(QBrush(QColor(151, 0, 0, alpha)));
-	pts->setShapePen(QPen(QColor(255, 100, 50, alpha)));
-	pts->setConnectionPen(QPen(QColor(151, 0, 0, alpha), 0, Qt::DotLine, Qt::FlatCap, Qt::BevelJoin));
+	pts->setShapeBrush(QBrush(QColor(151, 0, 0, defaultAlpha255)));
+	pts->setShapePen(QPen(QColor(255, 100, 50, defaultAlpha255)));
+	pts->setConnectionPen(QPen(QColor(151, 0, 0, defaultAlpha255), 0, Qt::DotLine, Qt::FlatCap, Qt::BevelJoin));
 
 	int pw = width / 2;
 	int ph = height / 2;
 	ctrlPoints << QPointF(pw, ph);
-	if (canRotate) ctrlPoints << QPointF(pw + 100, ph);
+	if (canRotate) ctrlPoints << QPointF(pw + 100 * scaleFactor, ph);
 
 	fetchShapeProperty();
 	fetchPositionProperties();
@@ -69,16 +72,24 @@ void GameObjectView::renderView() {
 	p.scale(scaleFactor, scaleFactor);
 	p.translate(-center);
 
-	if (!image.isNull()) p.drawImage(QPointF(0, 0), image);
 	if (!rectangle.isNull()) {
 		p.setPen(QPen(selected ? selectedColor : defaultColor, 1 / scaleFactor, Qt::SolidLine, Qt::FlatCap, Qt::BevelJoin));
-		p.setBrush(Qt::NoBrush);
 		p.drawRect(rectangle);
 	}
+
+	if (hasAlpha) p.setOpacity(alpha);
+	if (!rectangle.isNull()) {
+		if (hasBgColor) {
+			p.setBrush(Qt::SolidPattern);
+			p.fillRect(rectangle, bgcolor);
+		} else {
+			p.setBrush(Qt::NoBrush);
+		}
+	}
+	if (!image.isNull()) p.drawImage(QPointF(0, 0), image);
 }
 
 void GameObjectView::onPointsChangeStart() {
-	Util::warn("Change start");
 	cacheRelatedViews();
 }
 
@@ -167,13 +178,17 @@ void GameObjectView::onPropertyModelUpdated(const QString &name, const QString &
 			relatedViews[i]->setDelta(dx, 0);
 		}
 	} else if (name == "width") {
-		width = value.toInt() * scaleFactor;
+		width = value.toInt();
 		fetchShapeProperty();
 	} else if (name == "height") {
-		height = value.toInt() * scaleFactor;
+		height = value.toInt();
 		fetchShapeProperty();
 	} else if (name == "rotation") {
 		setRotation(value.toFloat());
+	} else if (name == "bgcolor") {
+		bgcolor = QColor(value);
+	} else if (name == "alpha") {
+		alpha = value.toDouble();
 	} else {
 		return;
 	}
@@ -192,8 +207,8 @@ void GameObjectView::fetchPositionProperties() {
 }
 
 void GameObjectView::fetchSizeProperties() {
-	width = gameObject->getPropertyValue("width").toInt() * scaleFactor;
-	height = gameObject->getPropertyValue("height").toInt() * scaleFactor;
+	width = gameObject->getPropertyValue("width").toInt();
+	height = gameObject->getPropertyValue("height").toInt();
 }
 
 void GameObjectView::fetchShapeProperty() {
@@ -204,15 +219,17 @@ void GameObjectView::fetchShapeProperty() {
 	} else if (shape == "rectangle" || image.isNull()) {
 		rectangle = QRectF(0, 0, width, height);
 	}
+	if (hasBgColor) bgcolor = QColor(gameObject->getPropertyValue("bgcolor"));
 }
 
 void GameObjectView::fetchTextureProperty() {
+	if (hasAlpha) alpha = gameObject->getPropertyValue("alpha").toDouble();
 	QString path = gameObject->getPropertyValue("texture");
 	if (!path.isEmpty()) {
 		image = QImage(path);
 		if (!image.isNull()) {
-			width = image.width() * scaleFactor;
-			height = image.height() * scaleFactor;
+			width = image.width();
+			height = image.height();
 		}
 		rectangle = QRectF(0, 0, width, height).adjusted(-2, -2, 2, 2);
 	}

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>899</width>
-    <height>703</height>
+    <width>1024</width>
+    <height>700</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -63,7 +63,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>899</width>
+     <width>1024</width>
      <height>21</height>
     </rect>
    </property>
@@ -96,6 +96,10 @@
    <addaction name="actionNew"/>
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
+   <addaction name="separator"/>
+   <addaction name="actionCopy"/>
+   <addaction name="actionCut"/>
+   <addaction name="actionPaste"/>
    <addaction name="separator"/>
    <addaction name="actionZoom_in"/>
    <addaction name="actionZoom_out"/>
@@ -163,6 +167,33 @@
    </property>
    <property name="text">
     <string>Zoom out</string>
+   </property>
+  </action>
+  <action name="actionCopy">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/page_copy.png</normaloff>:/icons/page_copy.png</iconset>
+   </property>
+   <property name="text">
+    <string>Copy</string>
+   </property>
+  </action>
+  <action name="actionPaste">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/page_paste.png</normaloff>:/icons/page_paste.png</iconset>
+   </property>
+   <property name="text">
+    <string>Paste</string>
+   </property>
+  </action>
+  <action name="actionCut">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/icons/cut.png</normaloff>:/icons/cut.png</iconset>
+   </property>
+   <property name="text">
+    <string>Cut</string>
    </property>
   </action>
  </widget>

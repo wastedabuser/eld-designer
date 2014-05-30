@@ -11,6 +11,7 @@ GameObject::GameObject(const QJsonObject &obj, GameObject *parent) {
 
 	if (obj.isEmpty()) {
 		type = Config::rootObject["type"].toString();
+		propertyModel = 0;
 	} else {
 		type = obj["type"].toString();
 		id = obj["id"].toString();
@@ -23,19 +24,28 @@ GameObject::GameObject(const QJsonObject &obj, GameObject *parent) {
 
 GameObject::~GameObject() {
 	qDeleteAll(childItems);
-	delete propertyModel;
+	if (propertyModel) delete propertyModel;
 }
 
 QList<GameObject *> GameObject::getChildrenListDeep() {
 	QList<GameObject *> list;
 	for (int i = 0; i < childItems.size(); i++) {
-		list.append(childItems[i]);
 		QList<GameObject *> chList = childItems[i]->getChildrenListDeep();
 		for (int j = 0; j < chList.size(); j++) {
 			list.append(chList[j]);
 		}
+		list.append(childItems[i]);
 	}
 	return list;
+}
+
+QList<GameObject *> GameObject::getChildren() {
+	QList<GameObject *> list(childItems);
+	return list;
+}
+
+GameObject *GameObject::cloneDeep() {
+	return new GameObject(getJsonObject());
 }
 
 GameObject *GameObject::child(int number) {
@@ -99,17 +109,20 @@ void GameObject::addChild(int index, GameObject *obj) {
 }
 
 QString GameObject::getPropertyValue(const QString &name) {
+	if (!propertyModel) return QString();
 	return propertyModel->getPropertyValue(name, type);
 }
 
 void GameObject::setPropertyValue(const QString &name, const QString &value) {
-	propertyModel->setPropertyValue(name, value);
+	if (propertyModel) propertyModel->setPropertyValue(name, value);
 }
 
 bool GameObject::hasProperty(const QString &name) {
+	if (!propertyModel) return false;
 	return propertyModel->hasProperty(name, type);
 }
 
 bool GameObject::hasView() {
+	if (!propertyModel) return false;
 	return propertyModel->hasProperty("texture", type) || propertyModel->hasProperty("shape", type);
 }

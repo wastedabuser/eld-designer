@@ -6,6 +6,7 @@
 #include <QPushButton>
 #include <QFileDialog>
 #include <QHBoxLayout>
+#include <QColorDialog>
 
 PropertyEditorDelegate::PropertyEditorDelegate(QObject *parent): QStyledItemDelegate(parent) {
 
@@ -31,17 +32,21 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 			cb->addItem(obj["type"].toString(), QVariant(obj));
 		}
 		return cb;
-	} else if (propertyType == "file") {
+	} else if (propertyType == "file" || propertyType == "color") {
 		editorContainer = new QWidget(parent);
 		QHBoxLayout *layout = new QHBoxLayout;
 		lineEditor = new QLineEdit;
 		fileBtn = new QPushButton("...");
-		connect(fileBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
+
 		layout->setContentsMargins(0, 0, 0, 0);
 		layout->setSpacing(1);
 		layout->addWidget(lineEditor);
 		layout->addWidget(fileBtn);
 		editorContainer->setLayout(layout);
+
+		if (propertyType == "file") connect(fileBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
+		else if (propertyType == "color") connect(fileBtn, SIGNAL(clicked()), this, SLOT(on_colorBtn_clicked()));
+
 		return editorContainer;
 	}
 
@@ -54,6 +59,13 @@ void PropertyEditorDelegate::on_fileBtn_clicked() {
 	emit commitData(editorContainer);
 }
 
+void PropertyEditorDelegate::on_colorBtn_clicked() {
+	QColor color = QColorDialog::getColor(QColor(lineEditor->text()),fileBtn);
+	lineEditor->setText(color.name());
+	emit commitData(editorContainer);
+}
+
+
 void PropertyEditorDelegate::destroyEditor(QWidget * editor, const QModelIndex & index) const {
 	if (propertyType == "file") disconnect(fileBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
 	QStyledItemDelegate::destroyEditor(editor, index);
@@ -61,7 +73,7 @@ void PropertyEditorDelegate::destroyEditor(QWidget * editor, const QModelIndex &
 
 void PropertyEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const {
 	QString currentText = index.data(Qt::EditRole).toString();
-	if (propertyType == "file") {
+	if (propertyType == "file" || propertyType == "color") {
 		lineEditor->setText(currentText);
 	} else if (QComboBox *cb = qobject_cast<QComboBox *>(editor)) {
 		int cbIndex = cb->findText(currentText);
@@ -74,7 +86,7 @@ void PropertyEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &i
 
 
 void PropertyEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const {
-	if (propertyType == "file") {
+	if (propertyType == "file" || propertyType == "color") {
 		model->setData(index, lineEditor->text());
 	} else if (QComboBox *cb = qobject_cast<QComboBox *>(editor)) {
 		PropertyModel *pm = (PropertyModel*) model;

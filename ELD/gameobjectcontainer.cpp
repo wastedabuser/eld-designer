@@ -13,6 +13,7 @@ GameObjectContainer::GameObjectContainer(QWidget *parent) :
 	ui->setupUi(this);
 
 	canvasPadding = 100;
+	scaleFactor = 1;
 }
 
 GameObjectContainer::~GameObjectContainer() {
@@ -60,6 +61,7 @@ void GameObjectContainer::zoom(bool out, bool wheel) {
 		views[i]->setZoomChange(sf);
 	}
 
+	scaleFactor *= sf;
 	canvasPadding *= sf;
 	alignContainerCanvas();
 
@@ -71,37 +73,52 @@ void GameObjectContainer::zoom(bool out, bool wheel) {
 }
 
 void GameObjectContainer::addGameObject(GameObject *obj, bool doUpdate) {
-	GameObjectView *view = new GameObjectView(this, obj);
+	if (!obj || obj == NULL) return;
 
-	views.append(view);
-	hViews[obj] = view;
+	QList<GameObject *> list = obj->getChildrenListDeep();
+	list.append(obj);
 
-	connect(view, SIGNAL(viewChanged(GameObjectView*)),
-			this, SLOT(handleViewChange(GameObjectView *)));
+	for (int i = 0; i < list.size(); i++) {
+		if (!list[i]->hasView()) continue;
 
-	if (doUpdate) handleViewChange(view);
+		GameObjectView *view = new GameObjectView(this, list[i], scaleFactor);
+
+		views.append(view);
+		hViews[list[i]] = view;
+
+		view->cacheRelatedViews();
+		view->fetchShapeProperty();
+
+		connect(view, SIGNAL(viewChanged(GameObjectView*)),
+				this, SLOT(handleViewChange(GameObjectView *)));
+	}
+
+	if (doUpdate) updateCanvas();
 }
 
 void GameObjectContainer::removeGameObject(GameObject *obj) {
-	GameObjectView *view = hViews[obj];
+	if (!obj || obj == NULL) return;
 
-	views.removeOne(view);
-	hViews.remove(obj);
+	QList<GameObject *> list = obj->getChildrenListDeep();
+	list.prepend(obj);
 
-	disconnect(view, SIGNAL(viewChanged(GameObjectView*)),
-			   this, SLOT(handleViewChange(GameObjectView *)));
+	for (int i = 0; i < list.size(); i++) {
+		if (!hViews.contains(list[i])) continue;
+		GameObjectView *view = hViews[list[i]];
 
-	handleViewChange(view);
+		views.removeOne(view);
+		hViews.remove(list[i]);
 
-	delete view;
-}
+		disconnect(view, SIGNAL(viewChanged(GameObjectView*)),
+				   this, SLOT(handleViewChange(GameObjectView *)));
 
-void GameObjectContainer::initViews() {
-	for (int i = 0; i < views.size(); i++) {
-		views[i]->cacheRelatedViews();
-		views[i]->fetchShapeProperty();
+		delete view;
 	}
 
+	updateCanvas();
+}
+
+void GameObjectContainer::updateCanvas() {
 	alignContainerCanvas();
 	update();
 }
@@ -142,8 +159,7 @@ QRect GameObjectContainer::getViewsBounds(QList<GameObjectView *> &list) {
 
 void GameObjectContainer::handleViewChange(GameObjectView *view) {
 	view->commitPositionProperties();
-	alignContainerCanvas();
-	update();
+	updateCanvas();
 }
 
 void GameObjectContainer::alignContainerCanvas() {

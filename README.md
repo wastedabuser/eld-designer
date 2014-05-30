@@ -72,6 +72,8 @@ The cool thing about this level editor is that it is very flexible because there
 
 So you cerate a json file and place it anywhere you like. Then be sure to point the location of the file after you launch the application (From the Tools menu)!
 
+Please, note that the application will not report parse errors! So it is best to run your json file through validator like (JSONLint)(http://jsonlint.com/) in case you are confused why your file is not loaded!
+
 Here is an exmaple of a typical configuration.json
 ```
 {

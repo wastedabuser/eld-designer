@@ -25,6 +25,10 @@ class Editor : public QWidget {
 	void zoomIn();
 	void zoomOut();
 
+	GameObject *copyGameObject();
+	GameObject *cutGameObject();
+	void pasteGameObject(GameObject *obj);
+
 	int tabIndex;
 	QString fileName;
 
@@ -41,7 +45,9 @@ class Editor : public QWidget {
 
 	void on_moveNodeDown_clicked();
 
-	private:
+	void on_expandTree_clicked();
+
+  private:
 	Ui::Editor *ui;
 	GameObjectModel *gameObjectModel;
 	GameObjectContainer *gameObjectContainer;

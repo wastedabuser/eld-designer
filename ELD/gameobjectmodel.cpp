@@ -108,7 +108,7 @@ QList<GameObject *> GameObjectModel::setJson(const QJsonDocument &doc) {
 	beginInsertRows(QModelIndex(), 0, 0);
 	rootItem->createChildrenFromJsonArray(list);
 	endInsertRows();
-	return rootItem->getChildrenListDeep();
+	return rootItem->getChildren();
 }
 
 bool GameObjectModel::canCreateObject(const QString &typeName, const QModelIndex &index) {
@@ -124,7 +124,8 @@ bool GameObjectModel::canCreateObject(const QString &typeName, const QModelIndex
 	return ok;
 }
 
-GameObject *GameObjectModel::createGameObject(const QString &typeName, const QModelIndex &index) {
+GameObject *GameObjectModel::appendGameObjectFromJsonObject(const QJsonObject &obj, const QModelIndex &index) {
+	QString typeName = obj["type"].toString();
 	if (!canCreateObject(typeName, index)) {
 		QMessageBox messageBox;
 		messageBox.warning(0, tr("Not allowed"), tr("You can not create such object under the current selection"));
@@ -133,13 +134,17 @@ GameObject *GameObjectModel::createGameObject(const QString &typeName, const QMo
 
 	GameObject *item = getItem(index);
 	beginInsertRows(index, item->childCount(), item->childCount());
-	QJsonObject obj;
-	obj["type"] = typeName;
-	obj["id"] = getNextGameObjectId(typeName);
 	GameObject *child = item->appendChild(obj);
 	endInsertRows();
 
 	return child;
+}
+
+GameObject *GameObjectModel::createGameObject(const QString &typeName, const QModelIndex &index) {
+	QJsonObject obj;
+	obj["type"] = typeName;
+	obj["id"] = getNextGameObjectId(typeName);
+	return appendGameObjectFromJsonObject(obj, index);
 }
 
 GameObject *GameObjectModel::removeGameObject(const QModelIndex &index) {

@@ -13,7 +13,7 @@ class GameObjectView : public QObject {
 	Q_OBJECT
 
   public:
-	GameObjectView(GameObjectContainer *widget, GameObject *obj);
+	GameObjectView(GameObjectContainer *widget, GameObject *obj, double scaleF = 1);
 	~GameObjectView();
 
 	void renderView();
@@ -44,15 +44,19 @@ class GameObjectView : public QObject {
 	GameObjectContainer *container;
 	GameObject *gameObject;
 	HoverPoints *pts;
+	QList<GameObjectView *> relatedViews;
 	QPolygonF ctrlPoints;
 	QImage image;
 	QRectF rectangle;
 	int width;
 	int height;
-	double rotation;
 	double scaleFactor;
-	QList<GameObjectView *> relatedViews;
+	double rotation;
 	bool canRotate;
+	bool hasBgColor;
+	QColor bgcolor;
+	bool hasAlpha;
+	double alpha;
 };
 
 #endif // GAMEOBJECTVIEW_H

@@ -20,6 +20,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     settingsFile = "settings.json";
     readSettings();
+
+	copiedGameObject = 0;
 }
 
 MainWindow::~MainWindow() {
@@ -57,6 +59,13 @@ void MainWindow::addEditor(const QString &label, const QString &fileName) {
     tabs->addTab(editor, label);
     tabs->setCurrentWidget(editor);
 	editor->tabIndex = tabs->currentIndex();
+}
+
+
+void MainWindow::copyGameObject(GameObject *obj) {
+	if (!obj) return;
+	if (copiedGameObject) delete copiedGameObject;
+	copiedGameObject = obj;
 }
 
 void MainWindow::on_actionOpen_triggered() {
@@ -108,4 +117,30 @@ void MainWindow::on_actionZoom_out_triggered() {
 
 	Editor *curEditor = (Editor*) tabs->currentWidget();
 	curEditor->zoomOut();
+}
+
+void MainWindow::on_actionCopy_triggered() {
+	QTabWidget *tabs = ui->tabWidget;
+	if (tabs->currentWidget() == 0) return;
+
+	Editor *curEditor = (Editor*) tabs->currentWidget();
+	copyGameObject(curEditor->copyGameObject());
+}
+
+void MainWindow::on_actionPaste_triggered() {
+	if (!copiedGameObject) return;
+
+	QTabWidget *tabs = ui->tabWidget;
+	if (tabs->currentWidget() == 0) return;
+
+	Editor *curEditor = (Editor*) tabs->currentWidget();
+	curEditor->pasteGameObject(copiedGameObject);
+}
+
+void MainWindow::on_actionCut_triggered() {
+	QTabWidget *tabs = ui->tabWidget;
+	if (tabs->currentWidget() == 0) return;
+
+	Editor *curEditor = (Editor*) tabs->currentWidget();
+	copyGameObject(curEditor->cutGameObject());
 }

@@ -11,5 +11,9 @@
         <file>icons/magnifier_zoom_in.png</file>
         <file>icons/arrow_down.png</file>
         <file>icons/arrow_up.png</file>
+        <file>icons/page_copy.png</file>
+        <file>icons/page_paste.png</file>
+        <file>icons/table_lightning.png</file>
+        <file>icons/cut.png</file>
     </qresource>
 </RCC>

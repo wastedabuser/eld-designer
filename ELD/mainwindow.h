@@ -15,11 +15,12 @@ class MainWindow : public QMainWindow {
 
   public:
     explicit MainWindow(QWidget *parent = 0);
+	~MainWindow();
     void addEditor(const QString& label, const QString &fileName = "");
     void readSettings();
     void applySetting(const QString& key, const QString& value);
     void saveSettings();
-    ~MainWindow();
+	void copyGameObject(GameObject *obj);
 
   private slots:
     void on_actionOpen_triggered();
@@ -36,16 +37,21 @@ class MainWindow : public QMainWindow {
 
 	void on_actionZoom_out_triggered();
 
-	private:
+	void on_actionCopy_triggered();
+
+	void on_actionPaste_triggered();
+
+	void on_actionCut_triggered();
+
+  private:
+	Ui::MainWindow *ui;
     QString settingsFile;
     QJsonDocument settingsJson;
-
     QString configFile;
     QStringList types;
-
     int editorCnt;
+	GameObject *copiedGameObject;
 
-    Ui::MainWindow *ui;
 };
 
 #endif // MAINWINDOW_H
