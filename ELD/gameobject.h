@@ -31,6 +31,7 @@ class GameObject {
 	void createPropertiesFromJsonObject(const QJsonObject &obj);
 	QString getPropertyValue(const QString &name);
 	void setPropertyValue(const QString &name, const QString &value);
+	bool hasProperty(const QString &name);
 	bool hasView();
 
 	QString type;

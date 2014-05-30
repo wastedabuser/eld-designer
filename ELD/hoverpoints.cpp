@@ -76,6 +76,7 @@ bool HoverPoints::eventFilter(QObject *object, QEvent *event) {
 					m_currentIndex = pos;
 					firePointChange();
 				} else {
+					emit pointsChangeStart();
 					m_currentIndex = index;
 				}
 				return true;

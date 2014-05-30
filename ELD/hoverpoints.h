@@ -82,6 +82,7 @@ class HoverPoints : public QObject {
 	}
 
   signals:
+	void pointsChangeStart();
 	void pointsChanged(const QPolygonF &points);
 	void pointsChangeComplete();
 

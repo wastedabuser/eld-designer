@@ -16,6 +16,7 @@ GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj) : Q
 	rotation = 0;
 	scaleFactor = 1;
 	selected = false;
+	canRotate = gameObject->hasProperty("rotation");
 
 	fetchSizeProperties();
 	fetchTextureProperty();
@@ -30,18 +31,23 @@ GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj) : Q
 
 	int pw = width / 2;
 	int ph = height / 2;
-	ctrlPoints << QPointF(pw, ph) << QPointF(pw + 100, ph);
+	ctrlPoints << QPointF(pw, ph);
+	if (canRotate) ctrlPoints << QPointF(pw + 100, ph);
 
+	fetchShapeProperty();
 	fetchPositionProperties();
 
+	connect(pts, SIGNAL(pointsChangeStart()),
+			this, SLOT(onPointsChangeStart()));
+
 	connect(pts, SIGNAL(pointsChanged(const QPolygonF&)),
-			this, SLOT(updateCtrlPoints(const QPolygonF &)));
+			this, SLOT(onPointsChanged(const QPolygonF &)));
 
 	connect(pts, SIGNAL(pointsChangeComplete()),
-			this, SLOT(updateComplete()));
+			this, SLOT(onPointsChangeComplete()));
 
 	connect(gameObject->propertyModel, SIGNAL(propertyChanged(const QString &, const QString &)),
-			this, SLOT(propertyModelUpdated(const QString &, const QString &)));
+			this, SLOT(onPropertyModelUpdated(const QString &, const QString &)));
 
 }
 
@@ -59,33 +65,57 @@ void GameObjectView::renderView() {
 	p.translate(ctrlPoints.at(0) - center);
 
 	p.translate(center);
-	p.rotate(rotation);
+	if (canRotate) p.rotate(rotation);
 	p.scale(scaleFactor, scaleFactor);
 	p.translate(-center);
 
 	if (!image.isNull()) p.drawImage(QPointF(0, 0), image);
-	p.setPen(QPen(selected ? selectedColor : defaultColor, 1 / scaleFactor, Qt::SolidLine, Qt::FlatCap, Qt::BevelJoin));
-	p.setBrush(Qt::NoBrush);
-	p.drawRect(QRectF(0, 0, width, height).adjusted(-2, -2, 2, 2));
+	if (!rectangle.isNull()) {
+		p.setPen(QPen(selected ? selectedColor : defaultColor, 1 / scaleFactor, Qt::SolidLine, Qt::FlatCap, Qt::BevelJoin));
+		p.setBrush(Qt::NoBrush);
+		p.drawRect(rectangle);
+	}
 }
 
-void GameObjectView::updateCtrlPoints(const QPolygonF &points) {
+void GameObjectView::onPointsChangeStart() {
+	Util::warn("Change start");
+	cacheRelatedViews();
+}
+
+void GameObjectView::onPointsChanged(const QPolygonF &points) {
 	QPointF trans = points.at(0) - ctrlPoints.at(0);
 
-	if (qAbs(points.at(0).x() - points.at(1).x()) < 10
-			&& qAbs(points.at(0).y() - points.at(1).y()) < 10)
+	if (points.size() > 1 && qAbs(points.at(0).x() - points.at(1).x()) < 10 && qAbs(points.at(0).y() - points.at(1).y()) < 10)
 		pts->setPoints(ctrlPoints);
+
 	if (!trans.isNull()) {
 		ctrlPoints[0] = points.at(0);
-		ctrlPoints[1] += trans;
+		if (ctrlPoints.size() > 1) ctrlPoints[1] += trans;
 		pts->setPoints(ctrlPoints);
+
+		for (int i = 0; i < relatedViews.size(); i++) {
+			relatedViews[i]->setDelta(trans.x(), trans.y());
+		}
+
 	}
 	ctrlPoints = points;
 
-	QLineF line(ctrlPoints.at(0), ctrlPoints.at(1));
-	rotation = line.angle(QLineF(0, 0, 1, 0));
-	if (line.dy() < 0)
-		rotation = 360 - rotation;
+	if (ctrlPoints.size() > 1) {
+		QLineF line(ctrlPoints.at(0), ctrlPoints.at(1));
+		rotation = line.angle(QLineF(0, 0, 1, 0));
+		if (line.dy() < 0)
+			rotation = 360 - rotation;
+	}
+}
+
+void GameObjectView::onPointsChangeComplete() {
+	fetchShapeProperty();
+	emit viewChanged(this);
+}
+
+void GameObjectView::cacheRelatedViews() {
+	QList<GameObject *> list = gameObject->getChildrenListDeep();
+	relatedViews = container->getViewsForObejcts(list);
 }
 
 void GameObjectView::setRotation(qreal r) {
@@ -119,33 +149,46 @@ void GameObjectView::setDelta(int dx, int dy) {
 	pts->setPoints(ctrlPoints);
 }
 
-void GameObjectView::updateComplete() {
-	emit viewChanged(this);
-}
-
-void GameObjectView::propertyModelUpdated(const QString &name, const QString &value) {
+void GameObjectView::onPropertyModelUpdated(const QString &name, const QString &value) {
 	if (name == "texture") {
 		fetchTextureProperty();
 	} else if (name == "y") {
 		int dy = value.toInt() * scaleFactor - ctrlPoints[0].y();
 		setDelta(0, dy);
+		cacheRelatedViews();
+		for (int i = 0; i < relatedViews.size(); i++) {
+			relatedViews[i]->setDelta(0, dy);
+		}
 	} else if (name == "x") {
 		int dx = value.toInt() * scaleFactor - ctrlPoints[0].x();
 		setDelta(dx, 0);
+		cacheRelatedViews();
+		for (int i = 0; i < relatedViews.size(); i++) {
+			relatedViews[i]->setDelta(dx, 0);
+		}
 	} else if (name == "width") {
 		width = value.toInt() * scaleFactor;
+		fetchShapeProperty();
 	} else if (name == "height") {
 		height = value.toInt() * scaleFactor;
+		fetchShapeProperty();
 	} else if (name == "rotation") {
 		setRotation(value.toFloat());
 	} else {
 		return;
 	}
-	updateComplete();
+	onPointsChangeComplete();
 }
 
 QRect GameObjectView::bouds() {
 	return pts->getBounds();
+}
+
+void GameObjectView::fetchPositionProperties() {
+	int dx = gameObject->getPropertyValue("x").toInt() * scaleFactor - ctrlPoints[0].x();
+	int dy = gameObject->getPropertyValue("y").toInt() * scaleFactor - ctrlPoints[0].y();
+	setDelta(dx, dy);
+	if (canRotate) setRotation(gameObject->getPropertyValue("rotation").toDouble());
 }
 
 void GameObjectView::fetchSizeProperties() {
@@ -153,11 +196,14 @@ void GameObjectView::fetchSizeProperties() {
 	height = gameObject->getPropertyValue("height").toInt() * scaleFactor;
 }
 
-void GameObjectView::fetchPositionProperties() {
-	int dx = gameObject->getPropertyValue("x").toInt() * scaleFactor - ctrlPoints[0].x();
-	int dy = gameObject->getPropertyValue("y").toInt() * scaleFactor - ctrlPoints[0].y();
-	setDelta(dx, dy);
-	setRotation(gameObject->getPropertyValue("rotation").toDouble());
+void GameObjectView::fetchShapeProperty() {
+	QString shape = gameObject->getPropertyValue("shape");
+	if (shape == "bounds") {
+		QRect r = container->getViewsBounds(relatedViews);
+		rectangle = QRectF((r.x() - ctrlPoints[0].x()) / scaleFactor, (r.y() - ctrlPoints[0].y()) / scaleFactor, r.width() / scaleFactor, r.height() / scaleFactor);
+	} else if (shape == "rectangle" || image.isNull()) {
+		rectangle = QRectF(0, 0, width, height);
+	}
 }
 
 void GameObjectView::fetchTextureProperty() {
@@ -168,11 +214,12 @@ void GameObjectView::fetchTextureProperty() {
 			width = image.width() * scaleFactor;
 			height = image.height() * scaleFactor;
 		}
+		rectangle = QRectF(0, 0, width, height).adjusted(-2, -2, 2, 2);
 	}
 }
 
-void GameObjectView::commitProperties() {
+void GameObjectView::commitPositionProperties() {
 	gameObject->setPropertyValue("x", QString::number(qRound(ctrlPoints[0].x() / scaleFactor)));
 	gameObject->setPropertyValue("y", QString::number(qRound(ctrlPoints[0].y() / scaleFactor)));
-	gameObject->setPropertyValue("rotation", QString::number(rotation));
+	if (canRotate) gameObject->setPropertyValue("rotation", QString::number(rotation));
 }

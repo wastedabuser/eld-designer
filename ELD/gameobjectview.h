@@ -21,17 +21,21 @@ class GameObjectView : public QObject {
 	void setRotation(qreal r);
 	void setZoomChange(double sf);
 	QRect bouds();
-	void commitProperties();
+	void commitPositionProperties();
 	void fetchSizeProperties();
+	void fetchRotationProperty();
 	void fetchPositionProperties();
+	void fetchShapeProperty();
 	void fetchTextureProperty();
+	void cacheRelatedViews();
 
 	bool selected;
 
   public slots:
-	void updateCtrlPoints(const QPolygonF &);
-	void updateComplete();
-	void propertyModelUpdated(const QString &, const QString &);
+	void onPointsChangeStart();
+	void onPointsChanged(const QPolygonF &);
+	void onPointsChangeComplete();
+	void onPropertyModelUpdated(const QString &, const QString &);
 
   signals:
 	void viewChanged(GameObjectView *view);
@@ -42,10 +46,13 @@ class GameObjectView : public QObject {
 	HoverPoints *pts;
 	QPolygonF ctrlPoints;
 	QImage image;
+	QRectF rectangle;
 	int width;
 	int height;
 	double rotation;
 	double scaleFactor;
+	QList<GameObjectView *> relatedViews;
+	bool canRotate;
 };
 
 #endif // GAMEOBJECTVIEW_H

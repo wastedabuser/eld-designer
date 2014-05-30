@@ -42,8 +42,9 @@ void Editor::load(const QString &fileNm) {
 	for (int i = 0; i < list.size(); i++) {
 		GameObject *item = list[i];
 		if (item->hasView())
-			gameObjectContainer->addGameObject(item);
+			gameObjectContainer->addGameObject(item, false);
 	}
+	gameObjectContainer->initViews();
 }
 
 void Editor::save() {

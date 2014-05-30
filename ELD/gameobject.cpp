@@ -106,6 +106,10 @@ void GameObject::setPropertyValue(const QString &name, const QString &value) {
 	propertyModel->setPropertyValue(name, value);
 }
 
+bool GameObject::hasProperty(const QString &name) {
+	return propertyModel->hasProperty(name, type);
+}
+
 bool GameObject::hasView() {
 	return propertyModel->hasProperty("texture", type) || propertyModel->hasProperty("shape", type);
 }
