@@ -22,7 +22,7 @@ class GameObjectModel : public QAbstractItemModel {
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
 	bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
-
+	QModelIndex getGameObjectIndex(GameObject *obj) const;
     GameObject *getItem(const QModelIndex &index) const;
 	QString getNextGameObjectId(const QString &typeName);
     QJsonDocument getJson();
@@ -33,8 +33,9 @@ class GameObjectModel : public QAbstractItemModel {
 	GameObject *removeGameObject(const QModelIndex &index);
 	bool moveGameObject(const QModelIndex &pindex, int offset);
 
+	GameObject *rootItem;
+
   private:
-    GameObject *rootItem;
 	int itemIdCount;
 };
 

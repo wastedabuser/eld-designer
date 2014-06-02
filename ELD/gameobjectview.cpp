@@ -8,45 +8,45 @@
 const int defaultAlpha255 = 155;
 const QColor defaultColor = QColor(255, 0, 0, defaultAlpha255);
 const QColor selectedColor = QColor(0, 255, 0, defaultAlpha255);
+const QColor defaultFillColor = QColor(151, 0, 0, defaultAlpha255);
+const QColor selectedFillColor = QColor(0, 151, 0, defaultAlpha255);
 
-GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj, double scaleF) : QObject(widget) {
+GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj, double scaleF, int x, int y) : QObject(widget) {
 
 	container = widget;
 	gameObject = obj;
 	rotation = 0;
+	polyline = 0;
 	scaleFactor = scaleF;
 	selected = false;
 	canRotate = gameObject->hasProperty("rotation");
-	hasBgColor = gameObject->hasProperty("bgcolor");
+	hasBgColor = gameObject->hasProperty("bgColor");
 	hasAlpha = gameObject->hasProperty("alpha");
 	alpha = 1;
 
 	fetchSizeProperties();
 	fetchTextureProperty();
 
-	pts = new HoverPoints(widget, HoverPoints::CircleShape);
-	pts->setConnectionType(HoverPoints::LineConnection);
-	pts->setEditable(false);
-	pts->setPointSize(QSize(10, 10));
-	pts->setShapeBrush(QBrush(QColor(151, 0, 0, defaultAlpha255)));
-	pts->setShapePen(QPen(QColor(255, 100, 50, defaultAlpha255)));
-	pts->setConnectionPen(QPen(QColor(151, 0, 0, defaultAlpha255), 0, Qt::DotLine, Qt::FlatCap, Qt::BevelJoin));
+	hoverPoints = new HoverPoints(widget, HoverPoints::CircleShape);
+	hoverPoints->setShapeBrush(QBrush(defaultFillColor));
+	hoverPoints->setShapePen(QPen(defaultColor));
+	hoverPoints->setConnectionPen(QPen(defaultFillColor, 0, Qt::DotLine, Qt::FlatCap, Qt::BevelJoin));
 
-	int pw = width / 2;
-	int ph = height / 2;
-	ctrlPoints << QPointF(pw, ph);
-	if (canRotate) ctrlPoints << QPointF(pw + 100 * scaleFactor, ph);
+	controlPolygon << QPointF(x, y);
+	if (canRotate) controlPolygon << QPointF((x + 100) * scaleFactor, y);
 
-	fetchShapeProperty();
 	fetchPositionProperties();
+	fetchShapeProperty();
 
-	connect(pts, SIGNAL(pointsChangeStart()),
+	hoverPoints->init();
+
+	connect(hoverPoints, SIGNAL(pointsChangeStart()),
 			this, SLOT(onPointsChangeStart()));
 
-	connect(pts, SIGNAL(pointsChanged(const QPolygonF&)),
+	connect(hoverPoints, SIGNAL(pointsChanged(const QPolygonF&)),
 			this, SLOT(onPointsChanged(const QPolygonF &)));
 
-	connect(pts, SIGNAL(pointsChangeComplete()),
+	connect(hoverPoints, SIGNAL(pointsChangeComplete()),
 			this, SLOT(onPointsChangeComplete()));
 
 	connect(gameObject->propertyModel, SIGNAL(propertyChanged(const QString &, const QString &)),
@@ -55,7 +55,8 @@ GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj, dou
 }
 
 GameObjectView::~GameObjectView() {
-	delete pts;
+	delete hoverPoints;
+	if(polyline) delete polyline;
 }
 
 void GameObjectView::renderView() {
@@ -65,7 +66,7 @@ void GameObjectView::renderView() {
 	p.setRenderHint(QPainter::SmoothPixmapTransform);
 
 	QPointF center(width/2.0, height/2.0);
-	p.translate(ctrlPoints.at(0) - center);
+	p.translate(controlPolygon.at(0) - center);
 
 	p.translate(center);
 	if (canRotate) p.rotate(rotation);
@@ -81,7 +82,7 @@ void GameObjectView::renderView() {
 	if (!rectangle.isNull()) {
 		if (hasBgColor) {
 			p.setBrush(Qt::SolidPattern);
-			p.fillRect(rectangle, bgcolor);
+			p.fillRect(rectangle, bgColor);
 		} else {
 			p.setBrush(Qt::NoBrush);
 		}
@@ -90,29 +91,30 @@ void GameObjectView::renderView() {
 }
 
 void GameObjectView::onPointsChangeStart() {
-	cacheRelatedViews();
+	createRelatedViewsBoundingRectangle();
 }
 
 void GameObjectView::onPointsChanged(const QPolygonF &points) {
-	QPointF trans = points.at(0) - ctrlPoints.at(0);
+	QPointF trans = points.at(0) - controlPolygon.at(0);
 
 	if (points.size() > 1 && qAbs(points.at(0).x() - points.at(1).x()) < 10 && qAbs(points.at(0).y() - points.at(1).y()) < 10)
-		pts->setPoints(ctrlPoints);
+		hoverPoints->setPoints(controlPolygon);
 
 	if (!trans.isNull()) {
-		ctrlPoints[0] = points.at(0);
-		if (ctrlPoints.size() > 1) ctrlPoints[1] += trans;
-		pts->setPoints(ctrlPoints);
+		controlPolygon[0] = points.at(0);
+		if (controlPolygon.size() > 1) controlPolygon[1] += trans;
+		hoverPoints->setPoints(controlPolygon);
 
 		for (int i = 0; i < relatedViews.size(); i++) {
 			relatedViews[i]->setDelta(trans.x(), trans.y());
 		}
 
+		if (polyline) polyline->movePolygonDelta(trans);
 	}
-	ctrlPoints = points;
+	controlPolygon = points;
 
-	if (ctrlPoints.size() > 1) {
-		QLineF line(ctrlPoints.at(0), ctrlPoints.at(1));
+	if (controlPolygon.size() > 1) {
+		QLineF line(controlPolygon.at(0), controlPolygon.at(1));
 		rotation = line.angle(QLineF(0, 0, 1, 0));
 		if (line.dy() < 0)
 			rotation = 360 - rotation;
@@ -129,49 +131,66 @@ void GameObjectView::cacheRelatedViews() {
 	relatedViews = container->getViewsForObejcts(list);
 }
 
+void GameObjectView::select(bool state) {
+	if (selected == state) return;
+
+	selected = state;
+	if (selected) {
+		hoverPoints->setShapePen(QPen(selectedColor));
+		hoverPoints->setShapeBrush(QBrush(selectedFillColor));
+		if (polyline) polyline->setEditable(true);
+	} else {
+		hoverPoints->setShapePen(QPen(defaultColor));
+		hoverPoints->setShapeBrush(QBrush(defaultFillColor));
+		if (polyline) polyline->setEditable(false);
+	}
+}
+
 void GameObjectView::setRotation(qreal r) {
 	qreal old_rot = rotation;
 	rotation = r;
 
-	QPointF center(ctrlPoints.at(0));
+	QPointF center(controlPolygon.at(0));
 	QMatrix m;
 	m.translate(center.x(), center.y());
 	m.rotate(rotation - old_rot);
 	m.translate(-center.x(), -center.y());
-	ctrlPoints = m.map(ctrlPoints);
-	pts->setPoints(ctrlPoints);
+	controlPolygon = m.map(controlPolygon);
+	hoverPoints->setPoints(controlPolygon);
 }
 
 void GameObjectView::setZoomChange(double sf) {
 	scaleFactor *= sf;
 	QTransform trans;
 	trans = trans.scale(sf, sf);
-	ctrlPoints = trans.map(ctrlPoints);
-	pts->setZoomChange(sf);
+	controlPolygon = trans.map(controlPolygon);
+	hoverPoints->setZoomChange(sf);
+	if (polyline) polyline->setZoomChange(sf);
 }
 
 void GameObjectView::setDelta(int dx, int dy) {
-	if (dx == 0 && dy == 0) return;
+//	if (dx == 0 && dy == 0) return;
 
-	for (int i = 0; i < ctrlPoints.size(); i++) {
-		ctrlPoints[i].setX(ctrlPoints[i].x() + dx);
-		ctrlPoints[i].setY(ctrlPoints[i].y() + dy);
+	for (int i = 0; i < controlPolygon.size(); i++) {
+		controlPolygon[i].setX(controlPolygon[i].x() + dx);
+		controlPolygon[i].setY(controlPolygon[i].y() + dy);
 	}
-	pts->setPoints(ctrlPoints);
+	hoverPoints->setPoints(controlPolygon);
+	if (polyline) polyline->moveDelta(dx, dy);
 }
 
 void GameObjectView::onPropertyModelUpdated(const QString &name, const QString &value) {
 	if (name == "texture") {
 		fetchTextureProperty();
 	} else if (name == "y") {
-		int dy = value.toInt() * scaleFactor - ctrlPoints[0].y();
+		int dy = value.toInt() * scaleFactor - controlPolygon[0].y();
 		setDelta(0, dy);
 		cacheRelatedViews();
 		for (int i = 0; i < relatedViews.size(); i++) {
 			relatedViews[i]->setDelta(0, dy);
 		}
 	} else if (name == "x") {
-		int dx = value.toInt() * scaleFactor - ctrlPoints[0].x();
+		int dx = value.toInt() * scaleFactor - controlPolygon[0].x();
 		setDelta(dx, 0);
 		cacheRelatedViews();
 		for (int i = 0; i < relatedViews.size(); i++) {
@@ -185,8 +204,10 @@ void GameObjectView::onPropertyModelUpdated(const QString &name, const QString &
 		fetchShapeProperty();
 	} else if (name == "rotation") {
 		setRotation(value.toFloat());
-	} else if (name == "bgcolor") {
-		bgcolor = QColor(value);
+	} else if (name == "bgColor") {
+		bgColor = QColor(value);
+	} else if (name == "lineColor") {
+		if (polyline) polyline->setConnectionPen(QPen(QColor(value), 2));
 	} else if (name == "alpha") {
 		alpha = value.toDouble();
 	} else {
@@ -196,12 +217,21 @@ void GameObjectView::onPropertyModelUpdated(const QString &name, const QString &
 }
 
 QRect GameObjectView::bouds() {
-	return pts->getBounds();
+	return hoverPoints->getBounds();
+}
+
+void GameObjectView::createRelatedViewsBoundingRectangle() {
+	cacheRelatedViews();
+	QString shape = gameObject->getPropertyValue("shape");
+	if (shape == "bounds") {
+		QRect r = container->getViewsBounds(relatedViews);
+		rectangle = QRectF((r.x() - controlPolygon[0].x()) / scaleFactor, (r.y() - controlPolygon[0].y()) / scaleFactor, r.width() / scaleFactor, r.height() / scaleFactor);
+	}
 }
 
 void GameObjectView::fetchPositionProperties() {
-	int dx = gameObject->getPropertyValue("x").toInt() * scaleFactor - ctrlPoints[0].x();
-	int dy = gameObject->getPropertyValue("y").toInt() * scaleFactor - ctrlPoints[0].y();
+	int dx = gameObject->getPropertyValue("x").toInt() * scaleFactor - controlPolygon[0].x();
+	int dy = gameObject->getPropertyValue("y").toInt() * scaleFactor - controlPolygon[0].y();
 	setDelta(dx, dy);
 	if (canRotate) setRotation(gameObject->getPropertyValue("rotation").toDouble());
 }
@@ -214,12 +244,23 @@ void GameObjectView::fetchSizeProperties() {
 void GameObjectView::fetchShapeProperty() {
 	QString shape = gameObject->getPropertyValue("shape");
 	if (shape == "bounds") {
-		QRect r = container->getViewsBounds(relatedViews);
-		rectangle = QRectF((r.x() - ctrlPoints[0].x()) / scaleFactor, (r.y() - ctrlPoints[0].y()) / scaleFactor, r.width() / scaleFactor, r.height() / scaleFactor);
+		// do nothing in this case
+	} else if (shape == "polyline") {
+		if (!polyline) {
+			polyline = new HoverPoints(container, HoverPoints::RectangleShape, scaleFactor);
+			polyline->fromJsonString(gameObject->getPropertyValue("lineCoordinates"));
+			polyline->setConnectionPen(QPen(QColor(gameObject->getPropertyValue("lineColor")), 2));
+			polyline->init();
+			connect(polyline, SIGNAL(pointsChangeComplete()), this, SLOT(onPolylineChangeComplete()));
+		}
 	} else if (shape == "rectangle" || image.isNull()) {
 		rectangle = QRectF(0, 0, width, height);
 	}
-	if (hasBgColor) bgcolor = QColor(gameObject->getPropertyValue("bgcolor"));
+	if (hasBgColor) bgColor = QColor(gameObject->getPropertyValue("bgColor"));
+}
+
+void GameObjectView::onPolylineChangeComplete(){
+	gameObject->setPropertyValue("lineCoordinates", polyline->toJsonStrign());
 }
 
 void GameObjectView::fetchTextureProperty() {
@@ -236,7 +277,7 @@ void GameObjectView::fetchTextureProperty() {
 }
 
 void GameObjectView::commitPositionProperties() {
-	gameObject->setPropertyValue("x", QString::number(qRound(ctrlPoints[0].x() / scaleFactor)));
-	gameObject->setPropertyValue("y", QString::number(qRound(ctrlPoints[0].y() / scaleFactor)));
+	gameObject->setPropertyValue("x", QString::number(qRound(controlPolygon[0].x() / scaleFactor)));
+	gameObject->setPropertyValue("y", QString::number(qRound(controlPolygon[0].y() / scaleFactor)));
 	if (canRotate) gameObject->setPropertyValue("rotation", QString::number(rotation));
 }

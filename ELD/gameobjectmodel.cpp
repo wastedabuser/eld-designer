@@ -26,10 +26,13 @@ int GameObjectModel::columnCount(const QModelIndex & /* parent */) const {
 }
 
 QModelIndex GameObjectModel::index(int row, int column, const QModelIndex &parent) const {
+	if (parent.isValid() && parent.column() != 0)
+		return QModelIndex();
+
 	GameObject *parentItem = getItem(parent);
 	GameObject *childItem = parentItem->child(row);
 	if (childItem)
-		return createIndex(row, 0, childItem);
+		return createIndex(row, column, childItem);
 	else
 		return QModelIndex();
 }
@@ -74,6 +77,10 @@ Qt::ItemFlags GameObjectModel::flags(const QModelIndex &index) const {
         return 0;
 
     return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+}
+
+QModelIndex GameObjectModel::getGameObjectIndex(GameObject *obj) const {
+	return createIndex(obj->childNumber(), 0, obj);
 }
 
 GameObject *GameObjectModel::getItem(const QModelIndex &index) const {
@@ -150,7 +157,7 @@ GameObject *GameObjectModel::createGameObject(const QString &typeName, const QMo
 GameObject *GameObjectModel::removeGameObject(const QModelIndex &index) {
 	GameObject *item = getItem(index);
 
-	beginRemoveRows(index, index.row(), index.row());
+	beginRemoveRows(parent(index), item->childNumber(), item->childNumber());
 	item->parent()->removeChild(index.row());
 	endRemoveRows();
 

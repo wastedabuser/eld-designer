@@ -78,16 +78,15 @@ void GameObjectContainer::addGameObject(GameObject *obj, bool doUpdate) {
 	QList<GameObject *> list = obj->getChildrenListDeep();
 	list.append(obj);
 
-	for (int i = 0; i < list.size(); i++) {
+	for (int i = list.size() - 1; i >= 0; i--) {
 		if (!list[i]->hasView()) continue;
 
-		GameObjectView *view = new GameObjectView(this, list[i], scaleFactor);
+		GameObjectView *view = new GameObjectView(this, list[i], scaleFactor, canvasPadding, canvasPadding);
 
 		views.append(view);
 		hViews[list[i]] = view;
 
-		view->cacheRelatedViews();
-		view->fetchShapeProperty();
+		view->createRelatedViewsBoundingRectangle();
 
 		connect(view, SIGNAL(viewChanged(GameObjectView*)),
 				this, SLOT(handleViewChange(GameObjectView *)));
@@ -100,7 +99,7 @@ void GameObjectContainer::removeGameObject(GameObject *obj) {
 	if (!obj || obj == NULL) return;
 
 	QList<GameObject *> list = obj->getChildrenListDeep();
-	list.prepend(obj);
+	list.append(obj);
 
 	for (int i = 0; i < list.size(); i++) {
 		if (!hViews.contains(list[i])) continue;
@@ -118,6 +117,15 @@ void GameObjectContainer::removeGameObject(GameObject *obj) {
 	updateCanvas();
 }
 
+void GameObjectContainer::applyGameObjectsOrder(QList<GameObject *> &list) {
+	for (int i = list.size() - 1; i >= 0; i--) {
+		if (!hViews.contains(list[i])) continue;
+		GameObjectView *view = hViews[list[i]];
+		if (views.removeOne(view)) views.append(view);
+	}
+	update();
+}
+
 void GameObjectContainer::updateCanvas() {
 	alignContainerCanvas();
 	update();
@@ -125,11 +133,22 @@ void GameObjectContainer::updateCanvas() {
 
 void GameObjectContainer::selectGameObject(GameObject *obj) {
 	for (int i = 0; i < views.size(); i++) {
-		views[i]->selected = false;
+		views[i]->select(false);
 	}
-	if (hViews.contains(obj)) hViews[obj]->selected = true;
+	if (hViews.contains(obj)) hViews[obj]->select(true);
 
 	update();
+}
+
+void GameObjectContainer::selectView(GameObjectView *view) {
+	for (int i = 0; i < views.size(); i++) {
+		if (view == views[i]) {
+			views[i]->select(true);
+			emit gameObjectSelect(view->gameObject);
+		} else {
+			views[i]->select(false);
+		}
+	}
 }
 
 QList<GameObjectView *> GameObjectContainer::getViewsForObejcts(QList<GameObject *> &list) {
@@ -159,6 +178,7 @@ QRect GameObjectContainer::getViewsBounds(QList<GameObjectView *> &list) {
 
 void GameObjectContainer::handleViewChange(GameObjectView *view) {
 	view->commitPositionProperties();
+	selectView(view);
 	updateCanvas();
 }
 

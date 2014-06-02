@@ -10,40 +10,44 @@ namespace Ui {
 	class GameObjectContainer;
 }
 
-class GameObjectContainer : public QWidget
-{
-		Q_OBJECT
+class GameObjectContainer : public QWidget {
+	Q_OBJECT
 
-	public:
-		explicit GameObjectContainer(QWidget *parent = 0);
-		~GameObjectContainer();
+  public:
+	explicit GameObjectContainer(QWidget *parent = 0);
+	~GameObjectContainer();
 
-		void paintEvent(QPaintEvent *);
-		void wheelEvent(QWheelEvent *);
-		void mouseMoveEvent(QMouseEvent *);
-		void addGameObject(GameObject *obj, bool doUpdate = true);
-		void removeGameObject(GameObject *obj);
-		void updateCanvas();
-		void selectGameObject(GameObject *obj);
-		void zoom(bool out, bool wheel = false);
-		QList<GameObjectView *> getViewsForObejcts(QList<GameObject *> &list);
-		QRect getViewsBounds(QList<GameObjectView *> &list);
+	void paintEvent(QPaintEvent *);
+	void wheelEvent(QWheelEvent *);
+	void mouseMoveEvent(QMouseEvent *);
+	void addGameObject(GameObject *obj, bool doUpdate = true);
+	void removeGameObject(GameObject *obj);
+	void applyGameObjectsOrder(QList<GameObject *> &list);
+	void updateCanvas();
+	void selectGameObject(GameObject *obj);
+	void selectView(GameObjectView *view);
+	void zoom(bool out, bool wheel = false);
+	QList<GameObjectView *> getViewsForObejcts(QList<GameObject *> &list);
+	QRect getViewsBounds(QList<GameObjectView *> &list);
 
-	public slots:
-		void handleViewChange(GameObjectView *view = 0);
+  public slots:
+	void handleViewChange(GameObjectView *view = 0);
 
-	private:
-		Ui::GameObjectContainer *ui;
-		QList<GameObjectView *> views;
-		QHash<GameObject *, GameObjectView *> hViews;
-		double canvasPadding;
-		double scaleFactor;
-		double dmw;
-		double dmh;
-		double rx;
-		double ry;
+  signals:
+	void gameObjectSelect(GameObject *obj);
 
-		void alignContainerCanvas();
+  private:
+	Ui::GameObjectContainer *ui;
+	QList<GameObjectView *> views;
+	QHash<GameObject *, GameObjectView *> hViews;
+	double canvasPadding;
+	double scaleFactor;
+	double dmw;
+	double dmh;
+	double rx;
+	double ry;
+
+	void alignContainerCanvas();
 };
 
 #endif // GAMEOBJECTCONTAINER_H

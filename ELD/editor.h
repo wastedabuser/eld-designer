@@ -28,11 +28,14 @@ class Editor : public QWidget {
 	GameObject *copyGameObject();
 	GameObject *cutGameObject();
 	void pasteGameObject(GameObject *obj);
+	void applyGameObjectsOrder();
 
 	int tabIndex;
 	QString fileName;
 
   private slots:
+	void on_gameObject_selected(GameObject *obj);
+
 	void on_addNode_clicked();
 
 	void on_removeNode_clicked();

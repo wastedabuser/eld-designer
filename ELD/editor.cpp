@@ -27,9 +27,14 @@ Editor::Editor(QWidget *parent) : QWidget(parent),
 	gameObjectContainer = new GameObjectContainer();
 	ui->scrollArea->setWidget(gameObjectContainer);
 
+	connect(gameObjectContainer, SIGNAL(gameObjectSelect(GameObject *)),
+			this, SLOT(on_gameObject_selected(GameObject *)));
 }
 
 Editor::~Editor() {
+	disconnect(gameObjectContainer, SIGNAL(gameObjectSelect(GameObject *)),
+			this, SLOT(on_gameObject_selected(GameObject *)));
+
     delete ui;
 }
 
@@ -39,7 +44,7 @@ void Editor::load(const QString &fileNm) {
 
 	QJsonDocument doc = JsonIO::readJson(fileName);
 	QList<GameObject *> list = gameObjectModel->setJson(doc);
-	for (int i = 0; i < list.size(); i++) {
+	for (int i = list.size() - 1; i >= 0; i--) {
 		gameObjectContainer->addGameObject(list[i], false);
 	}
 	gameObjectContainer->updateCanvas();
@@ -69,6 +74,8 @@ void Editor::addNode(const QModelIndex &index) {
 	QString typeName = ui->nodeType->currentText();
 	GameObject *item = gameObjectModel->createGameObject(typeName, index);
 	gameObjectContainer->addGameObject(item);
+
+	applyGameObjectsOrder();
 }
 
 GameObject *Editor::copyGameObject() {
@@ -88,6 +95,8 @@ GameObject *Editor::cutGameObject() {
 	GameObject *item = gameObjectModel->removeGameObject(index);
 	gameObjectContainer->removeGameObject(item);
 
+	applyGameObjectsOrder();
+
 	return item;
 }
 
@@ -98,12 +107,25 @@ void Editor::pasteGameObject(GameObject *obj) {
 
 	GameObject *item = gameObjectModel->appendGameObjectFromJsonObject(obj->getJsonObject(), index);
 	gameObjectContainer->addGameObject(item);
+
+	applyGameObjectsOrder();
+}
+
+void Editor::applyGameObjectsOrder() {
+	QList<GameObject *> list = gameObjectModel->rootItem->getChildrenListDeep();
+	gameObjectContainer->applyGameObjectsOrder(list);
 }
 
 void Editor::on_addNode_clicked() {
     QTreeView *view = ui->treeView;
     QModelIndex index = view->selectionModel()->currentIndex();
 	addNode(index);
+}
+
+void Editor::on_gameObject_selected(GameObject *obj) {
+	QModelIndex newIndex = gameObjectModel->getGameObjectIndex(obj);
+	ui->treeView->selectionModel()->setCurrentIndex(newIndex, QItemSelectionModel::ClearAndSelect);
+	ui->tableView->setModel(obj->propertyModel);
 }
 
 void Editor::on_removeNode_clicked() {
@@ -138,6 +160,7 @@ void Editor::on_moveNodeUp_clicked() {
 	if (!gameObjectModel->moveGameObject(index, -1))
 		return;
 
+	applyGameObjectsOrder();
 	QModelIndex newIndex = gameObjectModel->index(index.row() - 1, 0, index.parent());
 	view->selectionModel()->setCurrentIndex(newIndex, QItemSelectionModel::ClearAndSelect);
 }
@@ -150,6 +173,7 @@ void Editor::on_moveNodeDown_clicked() {
 	if (!gameObjectModel->moveGameObject(index, 1))
 		return;
 
+	applyGameObjectsOrder();
 	QModelIndex newIndex = gameObjectModel->index(index.row() + 1, 0, index.parent());
 	if (newIndex.isValid())
 		view->selectionModel()->setCurrentIndex(newIndex, QItemSelectionModel::ClearAndSelect);

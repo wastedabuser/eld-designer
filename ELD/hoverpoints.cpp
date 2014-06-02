@@ -4,22 +4,25 @@
 
 #include <QApplication>
 
-HoverPoints::HoverPoints(QWidget *widget, PointShape shape) : QObject(widget) {
+HoverPoints::HoverPoints(QWidget *widget, PointShape shape, double scaleF) : QObject(widget) {
 	m_widget = widget;
-	widget->installEventFilter(this);
-
-	m_connectionType = CurveConnection;
+	m_connectionType = LineConnection;
 	m_sortType = NoSort;
 	m_shape = shape;
-	m_pointPen = QPen(QColor(255, 255, 255, 191), 1);
-	m_connectionPen = QPen(QColor(255, 255, 255, 127), 2);
+	m_pointPen = QPen(QColor(0, 0, 0, 191), 1);
+	m_connectionPen = QPen(QColor(0, 0, 0, 127), 2);
 	m_pointBrush = QBrush(QColor(191, 191, 191, 127));
-	m_pointSize = QSize(11, 11);
+	m_pointSize = QSize(10, 10);
 	m_currentIndex = -1;
-	m_editable = true;
+	m_editable = false;
 	m_enabled = true;
+	scaleFactor = scaleF;
 
 	connect(this, SIGNAL(pointsChanged(const QPolygonF &)), m_widget, SLOT(update()));
+}
+
+void HoverPoints::init() {
+	m_widget->installEventFilter(this);
 }
 
 void HoverPoints::setEnabled(bool enabled) {
@@ -75,6 +78,7 @@ bool HoverPoints::eventFilter(QObject *object, QEvent *event) {
 					m_locks.insert(pos, 0);
 					m_currentIndex = pos;
 					firePointChange();
+					emit pointsChangeComplete();
 				} else {
 					emit pointsChangeStart();
 					m_currentIndex = index;
@@ -88,6 +92,7 @@ bool HoverPoints::eventFilter(QObject *object, QEvent *event) {
 						m_points.remove(index);
 					}
 					firePointChange();
+					emit pointsChangeComplete();
 					return true;
 				}
 			}
@@ -96,8 +101,8 @@ bool HoverPoints::eventFilter(QObject *object, QEvent *event) {
 		break;
 
 		case QEvent::MouseButtonRelease:
+			if (m_currentIndex >= 0) emit pointsChangeComplete();
 			m_currentIndex = -1;
-			emit pointsChangeComplete();
 			break;
 
 		case QEvent::MouseMove:
@@ -168,7 +173,6 @@ void HoverPoints::setPoints(const QPolygonF &points) {
 	m_locks.clear();
 	if (m_points.size() > 0) {
 		m_locks.resize(m_points.size());
-
 		m_locks.fill(0);
 	}
 }
@@ -177,7 +181,50 @@ void HoverPoints::setZoomChange(double sf) {
 	QTransform trans;
 	trans = trans.scale(sf, sf);
 	m_points = trans.map(m_points);
+	scaleFactor *= sf;
 	firePointChange();
+}
+
+void HoverPoints::movePolygonDelta(QPointF dp) {
+	for (int i=0; i < m_points.size(); ++i) {
+		m_points[i] += dp;
+	}
+	emit pointsChangeComplete();
+}
+
+void HoverPoints::moveDelta(int dx, int dy) {
+	movePolygonDelta(QPoint(dx, dy));
+}
+
+QString HoverPoints::toJsonStrign() {
+	QJsonArray list;
+	for (int i=0; i < m_points.size(); ++i) {
+		QJsonArray p;
+		p.append((int)(m_points[i].x() / scaleFactor));
+		p.append((int)(m_points[i].y() / scaleFactor));
+		list.append(p);
+	}
+	QJsonDocument doc;
+	doc.setArray(list);
+	return QString(doc.toJson(QJsonDocument::Compact));
+}
+
+void HoverPoints::fromJsonString(const QString &json) {
+	if (json.isEmpty()) return;
+
+	QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
+	QJsonArray points = doc.array();
+	m_points.clear();
+	for (int i=0; i<points.size(); ++i) {
+		QJsonArray pt = points.at(i).toArray();
+		m_points << QPointF(pt[0].toInt(), pt[1].toInt());
+	}
+
+	m_locks.clear();
+	if (m_points.size() > 0) {
+		m_locks.resize(m_points.size());
+		m_locks.fill(0);
+	}
 }
 
 void HoverPoints::movePoint(int index, const QPointF &point, bool emitUpdate) {

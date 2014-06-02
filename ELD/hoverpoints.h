@@ -27,7 +27,7 @@ class HoverPoints : public QObject {
 		CurveConnection
 	};
 
-	HoverPoints(QWidget *widget, PointShape shape);
+	HoverPoints(QWidget *widget, PointShape shape, double scaleF = 1);
 
 	bool eventFilter(QObject *object, QEvent *event);
 
@@ -87,7 +87,12 @@ class HoverPoints : public QObject {
 	void pointsChangeComplete();
 
   public:
+	void init();
 	void setZoomChange(double sf);
+	void movePolygonDelta(QPointF dp);
+	void moveDelta(int dx, int dy);
+	QString toJsonStrign();
+	void fromJsonString(const QString &json);
 
   private:
 	QRectF pointBoundingRect(int i) const;
@@ -106,6 +111,7 @@ class HoverPoints : public QObject {
 	int m_currentIndex;
 	bool m_editable;
 	bool m_enabled;
+	double scaleFactor;
 
 	QPen m_pointPen;
 	QBrush m_pointBrush;
