@@ -57,7 +57,7 @@ class GameObjectView : public QObject {
 
 	int width;
 	int height;
-	double scaleFactor;
+	double zoomFactor;
 	double rotation;
 	bool canRotate;
 	bool hasBgColor;

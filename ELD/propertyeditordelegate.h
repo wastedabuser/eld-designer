@@ -20,7 +20,7 @@ class PropertyEditorDelegate : public QStyledItemDelegate {
 	mutable QString propertyMeta;
 
 	mutable QWidget *editorContainer;
-	mutable QPushButton *fileBtn;
+	mutable QPushButton *actionBtn;
 	mutable QLineEdit *lineEditor;
 
   public slots:

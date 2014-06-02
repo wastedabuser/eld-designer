@@ -16,7 +16,7 @@ HoverPoints::HoverPoints(QWidget *widget, PointShape shape, double scaleF) : QOb
 	m_currentIndex = -1;
 	m_editable = false;
 	m_enabled = true;
-	scaleFactor = scaleF;
+	zoomFactor = scaleF;
 
 	connect(this, SIGNAL(pointsChanged(const QPolygonF &)), m_widget, SLOT(update()));
 }
@@ -181,8 +181,14 @@ void HoverPoints::setZoomChange(double sf) {
 	QTransform trans;
 	trans = trans.scale(sf, sf);
 	m_points = trans.map(m_points);
-	scaleFactor *= sf;
+	zoomFactor *= sf;
 	firePointChange();
+}
+
+void HoverPoints::movePoint(int index, const QPointF &point, bool emitUpdate) {
+	m_points[index] = point;
+	if (emitUpdate)
+		firePointChange();
 }
 
 void HoverPoints::movePolygonDelta(QPointF dp) {
@@ -196,12 +202,12 @@ void HoverPoints::moveDelta(int dx, int dy) {
 	movePolygonDelta(QPoint(dx, dy));
 }
 
-QString HoverPoints::toJsonStrign() {
+QString HoverPoints::toJsonString() {
 	QJsonArray list;
 	for (int i=0; i < m_points.size(); ++i) {
 		QJsonArray p;
-		p.append((int)(m_points[i].x() / scaleFactor));
-		p.append((int)(m_points[i].y() / scaleFactor));
+		p.append((int)(m_points[i].x() / zoomFactor));
+		p.append((int)(m_points[i].y() / zoomFactor));
 		list.append(p);
 	}
 	QJsonDocument doc;
@@ -217,7 +223,7 @@ void HoverPoints::fromJsonString(const QString &json) {
 	m_points.clear();
 	for (int i=0; i<points.size(); ++i) {
 		QJsonArray pt = points.at(i).toArray();
-		m_points << QPointF(pt[0].toInt(), pt[1].toInt());
+		m_points << QPointF(pt[0].toInt() * zoomFactor, pt[1].toInt() * zoomFactor);
 	}
 
 	m_locks.clear();
@@ -226,13 +232,6 @@ void HoverPoints::fromJsonString(const QString &json) {
 		m_locks.fill(0);
 	}
 }
-
-void HoverPoints::movePoint(int index, const QPointF &point, bool emitUpdate) {
-	m_points[index] = point;
-	if (emitUpdate)
-		firePointChange();
-}
-
 
 inline static bool x_less_than(const QPointF &p1, const QPointF &p2) {
 	return p1.x() < p2.x();

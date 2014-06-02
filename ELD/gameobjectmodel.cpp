@@ -8,7 +8,7 @@
 
 GameObjectModel::GameObjectModel(QObject *parent) : QAbstractItemModel(parent) {
 	itemIdCount = 1;
-	rootItem = new GameObject(QJsonObject());
+	rootItem = new GameObject(this, QJsonObject());
 }
 
 GameObjectModel::~GameObjectModel() {
@@ -67,7 +67,9 @@ bool GameObjectModel::setData(const QModelIndex &index, const QVariant &value, i
 
 	GameObject *item = getItem(index);
 	item->id = value.toString();
+
 	emit dataChanged(index, index);
+	emit gameObjectChanged();
 
 	return true;
 }
@@ -141,8 +143,10 @@ GameObject *GameObjectModel::appendGameObjectFromJsonObject(const QJsonObject &o
 
 	GameObject *item = getItem(index);
 	beginInsertRows(index, item->childCount(), item->childCount());
-	GameObject *child = item->appendChild(obj);
+	GameObject *child = item->appendChild(obj, this);
 	endInsertRows();
+
+	emit gameObjectChanged();
 
 	return child;
 }
@@ -161,6 +165,8 @@ GameObject *GameObjectModel::removeGameObject(const QModelIndex &index) {
 	item->parent()->removeChild(index.row());
 	endRemoveRows();
 
+	emit gameObjectChanged();
+
 	return item;
 }
 
@@ -176,5 +182,11 @@ bool GameObjectModel::moveGameObject(const QModelIndex &pindex, int offset) {
 	parent->addChild(pindex.row() + offset, item);
 	endMoveRows();
 
+	emit gameObjectChanged();
+
 	return true;
+}
+
+void GameObjectModel::onPropertyModelChanged(GameObject *obj) {
+	emit gameObjectChanged();
 }

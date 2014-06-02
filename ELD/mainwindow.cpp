@@ -34,9 +34,13 @@ void MainWindow::readSettings() {
 
     QJsonObject obj = settingsJson.object();
     configFile = obj["configFile"].toString();
-	QJsonDocument configJson = JsonIO::readJson(configFile);
-	Config::setConfig(configJson);
-    Util::warn("Config loaded ", configFile);
+	updateRecentMenu();
+
+	if (!configFile.isEmpty()) {
+		QJsonDocument configJson = JsonIO::readJson(configFile);
+		Config::setConfig(configJson);
+		Util::warn("Config loaded ", configFile);
+	}
 }
 
 void MainWindow::applySetting(const QString &key, const QString &value) {
@@ -46,6 +50,45 @@ void MainWindow::applySetting(const QString &key, const QString &value) {
     saveSettings();
 }
 
+void MainWindow::addRecentFile(const QString &fileName) {
+	QJsonObject obj = settingsJson.object();
+	QJsonArray recent;
+	if (obj.contains("recent")) {
+		recent = obj["recent"].toArray();
+		for (int i = 0; i < recent.size(); i++) {
+			if (recent[i].toString() == fileName) recent.removeAt(i);
+		}
+	}
+	recent.prepend(fileName);
+	obj["recent"] = recent;
+	settingsJson.setObject(obj);
+	saveSettings();
+	updateRecentMenu();
+}
+
+void MainWindow::clearRecentFiles() {
+	QJsonObject obj = settingsJson.object();
+	obj["recent"] = QJsonArray();
+	settingsJson.setObject(obj);
+	saveSettings();
+	updateRecentMenu();
+}
+
+void MainWindow::updateRecentMenu() {
+	QJsonObject obj = settingsJson.object();
+	QJsonArray recent;
+	if (obj.contains("recent")) recent = obj["recent"].toArray();
+
+	ui->menuOpen_Recent->clear();
+	for (int i = 0; i < recent.size(); i++) {
+		QAction *openFileAction = ui->menuOpen_Recent->addAction(recent[i].toString());
+		connect(openFileAction, SIGNAL(triggered()), this, SLOT(on_recentFileOpenAction_triggered()));
+	}
+	ui->menuOpen_Recent->addSeparator();
+	QAction *clearRecent = ui->menuOpen_Recent->addAction(tr("Clear Recent"));
+	connect(clearRecent, SIGNAL(triggered()), this, SLOT(on_actionClear_Recent_List_triggered()));
+}
+
 void MainWindow::saveSettings() {
     JsonIO::writeJson(settingsFile, settingsJson);
 }
@@ -53,7 +96,7 @@ void MainWindow::saveSettings() {
 void MainWindow::addEditor(const QString &label, const QString &fileName) {
 	QTabWidget *tabs = ui->tabWidget;
 
-	Editor *editor = new Editor();
+	Editor *editor = new Editor(this);
 	editor->load(fileName);
 
     tabs->addTab(editor, label);
@@ -73,6 +116,7 @@ void MainWindow::on_actionOpen_triggered() {
     if (fileName.isEmpty()) return;
 
     QFileInfo info1(fileName);
+	addRecentFile(fileName);
     MainWindow::addEditor(info1.fileName(), fileName);
 }
 
@@ -143,4 +187,15 @@ void MainWindow::on_actionCut_triggered() {
 
 	Editor *curEditor = (Editor*) tabs->currentWidget();
 	copyGameObject(curEditor->cutGameObject());
+}
+
+void MainWindow::on_actionClear_Recent_List_triggered() {
+	clearRecentFiles();
+}
+
+void MainWindow::on_recentFileOpenAction_triggered() {
+	QAction *action = qobject_cast<QAction *>(sender());
+	QString fileName = action->text();
+	QFileInfo info1(fileName);
+	MainWindow::addEditor(info1.fileName(), fileName);
 }

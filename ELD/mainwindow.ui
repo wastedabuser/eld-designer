@@ -71,8 +71,17 @@
     <property name="title">
      <string>File</string>
     </property>
+    <widget class="QMenu" name="menuOpen_Recent">
+     <property name="title">
+      <string>Open Recent</string>
+     </property>
+     <addaction name="separator"/>
+     <addaction name="actionClear_Recent_List"/>
+    </widget>
     <addaction name="actionNew"/>
     <addaction name="actionOpen"/>
+    <addaction name="menuOpen_Recent"/>
+    <addaction name="separator"/>
     <addaction name="actionSave"/>
     <addaction name="separator"/>
     <addaction name="actionExit"/>
@@ -212,6 +221,11 @@
    </property>
    <property name="text">
     <string>Cut</string>
+   </property>
+  </action>
+  <action name="actionClear_Recent_List">
+   <property name="text">
+    <string>Clear Recent List</string>
    </property>
   </action>
  </widget>

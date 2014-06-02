@@ -32,8 +32,12 @@ class GameObjectModel : public QAbstractItemModel {
 	GameObject *createGameObject(const QString &typeName, const QModelIndex &index);
 	GameObject *removeGameObject(const QModelIndex &index);
 	bool moveGameObject(const QModelIndex &pindex, int offset);
+	void onPropertyModelChanged(GameObject *obj);
 
 	GameObject *rootItem;
+
+  signals:
+	void gameObjectChanged();
 
   private:
 	int itemIdCount;

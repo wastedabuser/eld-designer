@@ -19,7 +19,10 @@ class MainWindow : public QMainWindow {
     void addEditor(const QString& label, const QString &fileName = "");
     void readSettings();
     void applySetting(const QString& key, const QString& value);
+	void addRecentFile(const QString &fileName);
+	void clearRecentFiles();
     void saveSettings();
+	void updateRecentMenu();
 	void copyGameObject(GameObject *obj);
 
   private slots:
@@ -42,6 +45,10 @@ class MainWindow : public QMainWindow {
 	void on_actionPaste_triggered();
 
 	void on_actionCut_triggered();
+
+	void on_actionClear_Recent_List_triggered();
+
+	void on_recentFileOpenAction_triggered();
 
   private:
 	Ui::MainWindow *ui;

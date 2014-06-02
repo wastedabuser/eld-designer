@@ -7,6 +7,8 @@
 #include <QWidget>
 #include <QJsonObject>
 
+class MainWindow;
+
 namespace Ui {
 	class Editor;
 }
@@ -15,7 +17,7 @@ class Editor : public QWidget {
 	Q_OBJECT
 
   public:
-	explicit Editor(QWidget *parent = 0);
+	explicit Editor(MainWindow *mainW, QWidget *parent = 0);
 	~Editor();
 
 	QList<QJsonObject> getPropertiesForType(const QString &typeName);
@@ -34,6 +36,8 @@ class Editor : public QWidget {
 	QString fileName;
 
   private slots:
+	void onGameObjectChanged();
+
 	void on_gameObject_selected(GameObject *obj);
 
 	void on_addNode_clicked();
@@ -52,8 +56,10 @@ class Editor : public QWidget {
 
   private:
 	Ui::Editor *ui;
+	MainWindow *mainWindow;
 	GameObjectModel *gameObjectModel;
 	GameObjectContainer *gameObjectContainer;
+
 };
 
 #endif // EDITOR_H

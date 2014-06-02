@@ -5,8 +5,10 @@
 #include "config.h"
 #include "gameobject.h"
 #include "propertymodel.h"
+#include "gameobjectmodel.h"
 
-GameObject::GameObject(const QJsonObject &obj, GameObject *parent) {
+GameObject::GameObject(GameObjectModel *model, const QJsonObject &obj, GameObject *parent) {
+	gameObjectModel = model;
 	parentItem = parent;
 
 	if (obj.isEmpty()) {
@@ -45,7 +47,7 @@ QList<GameObject *> GameObject::getChildren() {
 }
 
 GameObject *GameObject::cloneDeep() {
-	return new GameObject(getJsonObject());
+	return new GameObject(0, getJsonObject());
 }
 
 GameObject *GameObject::child(int number) {
@@ -90,12 +92,12 @@ QJsonObject GameObject::getJsonObject() {
 
 void GameObject::createChildrenFromJsonArray(const QJsonArray &list) {
 	for (int i = 0; i < list.size(); i++) {
-		appendChild(list[i].toObject());
+		appendChild(list[i].toObject(), gameObjectModel);
 	}
 }
 
-GameObject *GameObject::appendChild(const QJsonObject &obj) {
-	GameObject *item = new GameObject(obj, this);
+GameObject *GameObject::appendChild(const QJsonObject &obj, GameObjectModel *model) {
+	GameObject *item = new GameObject(model, obj, this);
 	childItems.append(item);
 	return item;
 }
@@ -114,7 +116,10 @@ QString GameObject::getPropertyValue(const QString &name) {
 }
 
 void GameObject::setPropertyValue(const QString &name, const QString &value) {
-	if (propertyModel) propertyModel->setPropertyValue(name, value);
+	if (propertyModel) {
+		propertyModel->setPropertyValue(name, value);
+		gameObjectModel->onPropertyModelChanged(this);
+	}
 }
 
 bool GameObject::hasProperty(const QString &name) {

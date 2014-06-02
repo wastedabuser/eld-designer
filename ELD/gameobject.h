@@ -8,9 +8,12 @@
 #include <QVariant>
 #include <QVector>
 
+class GameObjectModel;
+
 class GameObject {
+
   public:
-	GameObject(const QJsonObject &obj, GameObject *parent = 0);
+	GameObject(GameObjectModel *model, const QJsonObject &obj, GameObject *parent = 0);
 
     ~GameObject();
 
@@ -24,7 +27,7 @@ class GameObject {
 	QVariant data() const;
 	GameObject *parent();
 
-	GameObject *appendChild(const QJsonObject &obj);
+	GameObject *appendChild(const QJsonObject &obj, GameObjectModel *model);
 	void removeChild(int index);
 	void addChild(int index, GameObject *obj);
 	QJsonArray getChildJsonArray();
@@ -40,7 +43,11 @@ class GameObject {
 	QString id;
     PropertyModel *propertyModel;
 
+  signals:
+	void propertyModelChanged();
+
   private:
+	GameObjectModel *gameObjectModel;
 	GameObject *parentItem;
 	QList<GameObject *> childItems;
 

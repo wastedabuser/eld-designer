@@ -12,11 +12,9 @@ PropertyEditorDelegate::PropertyEditorDelegate(QObject *parent): QStyledItemDele
 
 }
 
-
 PropertyEditorDelegate::~PropertyEditorDelegate() {
 
 }
-
 
 QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const {
 	PropertyModel* model = (PropertyModel*) index.model();
@@ -36,16 +34,16 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 		editorContainer = new QWidget(parent);
 		QHBoxLayout *layout = new QHBoxLayout;
 		lineEditor = new QLineEdit;
-		fileBtn = new QPushButton("...");
+		actionBtn = new QPushButton("...");
 
 		layout->setContentsMargins(0, 0, 0, 0);
 		layout->setSpacing(1);
 		layout->addWidget(lineEditor);
-		layout->addWidget(fileBtn);
+		layout->addWidget(actionBtn);
 		editorContainer->setLayout(layout);
 
-		if (propertyType == "file") connect(fileBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
-		else if (propertyType == "color") connect(fileBtn, SIGNAL(clicked()), this, SLOT(on_colorBtn_clicked()));
+		if (propertyType == "file") connect(actionBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
+		else if (propertyType == "color") connect(actionBtn, SIGNAL(clicked()), this, SLOT(on_colorBtn_clicked()));
 
 		return editorContainer;
 	}
@@ -54,20 +52,19 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 }
 
 void PropertyEditorDelegate::on_fileBtn_clicked() {
-	QString path = QFileDialog::getOpenFileName(fileBtn, tr("Pick file"), "", "Files (" + propertyMeta + ")");
+	QString path = QFileDialog::getOpenFileName(actionBtn, tr("Pick file"), "", "Files (" + propertyMeta + ")");
 	lineEditor->setText(path);
 	emit commitData(editorContainer);
 }
 
 void PropertyEditorDelegate::on_colorBtn_clicked() {
-	QColor color = QColorDialog::getColor(QColor(lineEditor->text()),fileBtn);
+	QColor color = QColorDialog::getColor(QColor(lineEditor->text()),actionBtn);
 	lineEditor->setText(color.name());
 	emit commitData(editorContainer);
 }
 
-
 void PropertyEditorDelegate::destroyEditor(QWidget * editor, const QModelIndex & index) const {
-	if (propertyType == "file") disconnect(fileBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
+	if (propertyType == "file") disconnect(actionBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
 	QStyledItemDelegate::destroyEditor(editor, index);
 }
 
@@ -83,7 +80,6 @@ void PropertyEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &i
 		QStyledItemDelegate::setEditorData(editor, index);
 	}
 }
-
 
 void PropertyEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const {
 	if (propertyType == "file" || propertyType == "color") {

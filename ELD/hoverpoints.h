@@ -91,7 +91,7 @@ class HoverPoints : public QObject {
 	void setZoomChange(double sf);
 	void movePolygonDelta(QPointF dp);
 	void moveDelta(int dx, int dy);
-	QString toJsonStrign();
+	QString toJsonString();
 	void fromJsonString(const QString &json);
 
   private:
@@ -111,7 +111,7 @@ class HoverPoints : public QObject {
 	int m_currentIndex;
 	bool m_editable;
 	bool m_enabled;
-	double scaleFactor;
+	double zoomFactor;
 
 	QPen m_pointPen;
 	QBrush m_pointBrush;

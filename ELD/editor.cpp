@@ -7,15 +7,18 @@
 #include "gameobjectcontainer.h"
 #include "propertyeditordelegate.h"
 #include "filepropertydelegate.h"
+#include "mainwindow.h"
 
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QJsonDocument>
-#include <qfiledialog.h>
+#include <QFileDialog>
 
-Editor::Editor(QWidget *parent) : QWidget(parent),
+Editor::Editor(MainWindow *mainW, QWidget *parent) : QWidget(parent),
 	ui(new Ui::Editor) {
     ui->setupUi(this);
+
+	mainWindow = mainW;
 
 	ui->nodeType->addItems(Config::typesList);
 
@@ -27,13 +30,13 @@ Editor::Editor(QWidget *parent) : QWidget(parent),
 	gameObjectContainer = new GameObjectContainer();
 	ui->scrollArea->setWidget(gameObjectContainer);
 
-	connect(gameObjectContainer, SIGNAL(gameObjectSelect(GameObject *)),
-			this, SLOT(on_gameObject_selected(GameObject *)));
+	connect(gameObjectContainer, SIGNAL(gameObjectSelect(GameObject *)), this, SLOT(on_gameObject_selected(GameObject *)));
+	connect(gameObjectModel, SIGNAL(gameObjectChanged()), this, SLOT(onGameObjectChanged()));
 }
 
 Editor::~Editor() {
 	disconnect(gameObjectContainer, SIGNAL(gameObjectSelect(GameObject *)),
-			this, SLOT(on_gameObject_selected(GameObject *)));
+			   this, SLOT(on_gameObject_selected(GameObject *)));
 
     delete ui;
 }
@@ -51,8 +54,10 @@ void Editor::load(const QString &fileNm) {
 }
 
 void Editor::save() {
-	if (fileName.isEmpty())
+	if (fileName.isEmpty()) {
         fileName = QFileDialog::getSaveFileName(this, tr("Open File"), "", tr("Files (*.txt;*.json;*.lvjson;*.aijson)"));
+		mainWindow->addRecentFile(fileName);
+	}
 
 	if (!fileName.isEmpty()) {
         JsonIO::writeJson(fileName, gameObjectModel->getJson());
@@ -114,6 +119,15 @@ void Editor::pasteGameObject(GameObject *obj) {
 void Editor::applyGameObjectsOrder() {
 	QList<GameObject *> list = gameObjectModel->rootItem->getChildrenListDeep();
 	gameObjectContainer->applyGameObjectsOrder(list);
+}
+
+void Editor::onGameObjectChanged() {
+	QTabWidget *tabs = (QTabWidget*) parentWidget()->parentWidget();
+	QString label = tabs->tabText(tabIndex);
+	if (label.right(3) == "[*]") return;
+	else {
+		tabs->setTabText(tabIndex, label + " [*]");
+	}
 }
 
 void Editor::on_addNode_clicked() {
