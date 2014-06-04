@@ -75,10 +75,36 @@ bool GameObjectModel::setData(const QModelIndex &index, const QVariant &value, i
 }
 
 Qt::ItemFlags GameObjectModel::flags(const QModelIndex &index) const {
-    if (!index.isValid())
-        return 0;
+	Qt::ItemFlags defaultFlags = QAbstractItemModel::flags(index);
 
-    return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+	if (index.isValid())
+		return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaultFlags;
+	else
+		return defaultFlags;
+}
+
+bool GameObjectModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) {
+	if (action == Qt::IgnoreAction)
+		return true;
+
+	if (!data->hasFormat("application/eld-designer.object-type"))
+		return false;
+
+	QByteArray encodedData = data->data("application/eld-designer.object-type");
+	QDataStream stream(&encodedData, QIODevice::ReadOnly);
+	QStringList newItems;
+
+	while (!stream.atEnd()) {
+		QString text;
+		stream >> text;
+		newItems << text;
+	}
+
+	foreach (QString text, newItems) {
+		createGameObject(text, parent);
+	}
+
+	return true;
 }
 
 QModelIndex GameObjectModel::getGameObjectIndex(GameObject *obj) const {
@@ -123,9 +149,12 @@ QList<GameObject *> GameObjectModel::setJson(const QJsonDocument &doc) {
 bool GameObjectModel::canCreateObject(const QString &typeName, const QModelIndex &index) {
 	GameObject *item = getItem(index);
 	QJsonArray allowed = Config::alowedChildObject[item->type];
+	QJsonObject typeDef = Config::typesDefinitions[typeName];
+	QString categoryType = typeDef["category"].toString();
 	bool ok;
 	for (int i = 0; i < allowed.size(); i++) {
-		if (allowed[i].toString() == typeName) {
+		QString ch = allowed[i].toString();
+		if (ch == typeName || (!categoryType.isEmpty() && ch.right(1) == "*" && ch.left(ch.length() - 2) == categoryType)) {
 			ok = true;
 			break;
 		}

@@ -22,6 +22,7 @@ class GameObjectModel : public QAbstractItemModel {
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
 	bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+	bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
 	QModelIndex getGameObjectIndex(GameObject *obj) const;
     GameObject *getItem(const QModelIndex &index) const;
 	QString getNextGameObjectId(const QString &typeName);

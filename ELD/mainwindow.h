@@ -2,8 +2,11 @@
 #define MAINWINDOW_H
 
 #include "editor.h"
+#include "objecttype.h"
+#include "objecttypemodel.h"
 
 #include <QJsonDocument>
+#include <QListView>
 #include <QMainWindow>
 
 namespace Ui {
@@ -24,6 +27,7 @@ class MainWindow : public QMainWindow {
     void saveSettings();
 	void updateRecentMenu();
 	void copyGameObject(GameObject *obj);
+	ObjectType *getSelectedObjectType();
 
   private slots:
     void on_actionOpen_triggered();
@@ -58,6 +62,10 @@ class MainWindow : public QMainWindow {
     QStringList types;
     int editorCnt;
 	GameObject *copiedGameObject;
+	QList<ObjectTypeModel *> objectTypeModels;
+	QList<QListView *> listViews;
+
+	void initObjectTypes();
 
 };
 

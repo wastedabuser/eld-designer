@@ -20,8 +20,6 @@ Editor::Editor(MainWindow *mainW, QWidget *parent) : QWidget(parent),
 
 	mainWindow = mainW;
 
-	ui->nodeType->addItems(Config::typesList);
-
 	gameObjectModel = new GameObjectModel();
 	ui->treeView->setModel(gameObjectModel);
 
@@ -76,7 +74,10 @@ void Editor::zoomOut() {
 }
 
 void Editor::addNode(const QModelIndex &index) {
-	QString typeName = ui->nodeType->currentText();
+	ObjectType *tp = mainWindow->getSelectedObjectType();
+	if (!tp) return;
+
+	QString typeName = tp->type;
 	GameObject *item = gameObjectModel->createGameObject(typeName, index);
 	gameObjectContainer->addGameObject(item);
 

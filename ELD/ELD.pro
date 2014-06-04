@@ -25,7 +25,9 @@ SOURCES += main.cpp\
     gameobjectview.cpp \
     hoverpoints.cpp \
     gameobjectcontainer.cpp \
-    propertyeditordelegate.cpp
+    propertyeditordelegate.cpp \
+    objecttype.cpp \
+    objecttypemodel.cpp
 
 HEADERS  += mainwindow.h \
     editor.h \
@@ -39,7 +41,9 @@ HEADERS  += mainwindow.h \
     gameobjectview.h \
     hoverpoints.h \
     gameobjectcontainer.h \
-    propertyeditordelegate.h
+    propertyeditordelegate.h \
+    objecttype.h \
+    objecttypemodel.h
 
 FORMS    += mainwindow.ui \
     editor.ui \

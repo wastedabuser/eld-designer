@@ -2,10 +2,12 @@
 #include "editor.h"
 #include "jsonio.h"
 #include "mainwindow.h"
+#include "objecttypemodel.h"
 #include "ui_mainwindow.h"
 #include "util.h"
 
 #include <QFileDialog>
+#include <QListView>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -14,9 +16,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     editorCnt = 1;
 
-    QTabWidget *tabs = ui->tabWidget;
-    tabs->removeTab(0);
-    tabs->removeTab(0);
+	QTabWidget *tabs = ui->tabWidget;
+	tabs->removeTab(0);
+	tabs->removeTab(0);
 
     settingsFile = "settings.json";
     readSettings();
@@ -40,7 +42,42 @@ void MainWindow::readSettings() {
 		QJsonDocument configJson = JsonIO::readJson(configFile);
 		Config::setConfig(configJson);
 		Util::warn("Config loaded ", configFile);
+
+		initObjectTypes();
 	}
+}
+
+void MainWindow::initObjectTypes() {
+	QJsonArray categories = Config::categoriesRef;
+	for (int i = 0; i < categories.size(); i++) {
+		QJsonObject cat = categories[i].toObject();
+		QListView *listView = new QListView();
+		ObjectTypeModel *model = new ObjectTypeModel(Config::typesListByCategory[cat["type"].toString()]);
+		listViews.append(listView);
+		objectTypeModels.append(model);
+		listView->setModel(model);
+		listView->setDragEnabled(true);
+		QWidget *w = ui->toolBox->widget(i);
+		if (w) {
+			 QVBoxLayout *layout = new QVBoxLayout();
+			 layout->setMargin(0);
+			 layout->addWidget(listView);
+			 w->setLayout(layout);
+			 ui->toolBox->setItemText(i, cat["name"].toString());
+		} else {
+			ui->toolBox->addItem(listView, cat["name"].toString());
+		}
+	}
+}
+
+ObjectType *MainWindow::getSelectedObjectType() {
+	int i = ui->toolBox->currentIndex();
+	QListView *view = listViews.at(i);
+	QModelIndex index = view->selectionModel()->currentIndex();
+	if (!index.isValid()) return 0;
+
+	ObjectTypeModel *model = objectTypeModels.at(i);
+	return model->getItem(index);
 }
 
 void MainWindow::applySetting(const QString &key, const QString &value) {

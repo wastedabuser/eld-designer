@@ -13,9 +13,11 @@ class Config {
 	static QJsonObject rootObject;
 	static QJsonObject propertiesRef;
 	static QStringList typesList;
+	static QJsonArray categoriesRef;
 	static QHash<QString, QJsonArray> propertiesByObjectType;
 	static QHash<QString, QJsonObject> typesDefinitions;
 	static QHash<QString, QJsonArray> alowedChildObject;
+	static QHash<QString, QList<QJsonObject> > typesListByCategory;
 
 	static void setConfig(const QJsonDocument &configJson);
 	static QList<QJsonObject> getPropertiesForType(const QString &typeName);
