@@ -2,6 +2,8 @@
 
 ELD Designer is a 2D, non-tiled based, level editor designed to be as universal and simple as possible. It contains (and will contain) only things that are general purpose and universal. It will try to stay simple and quick tool for prototyping levels/states, not designing complex gaming mechanics, effects or animations.
 
+There is a screenshot [here](http://solarcoherence.com/?p=92)
+
 ## Features
 
 * Hierarchy of objects defining the level structure (Tree of objects);
