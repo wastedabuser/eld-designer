@@ -27,7 +27,11 @@ SOURCES += main.cpp\
     gameobjectcontainer.cpp \
     propertyeditordelegate.cpp \
     objecttype.cpp \
-    objecttypemodel.cpp
+    objecttypemodel.cpp \
+    expressiondesigner.cpp \
+    expressionmodel.cpp \
+    expression.cpp \
+    expressioneditordelegate.cpp
 
 HEADERS  += mainwindow.h \
     editor.h \
@@ -43,11 +47,16 @@ HEADERS  += mainwindow.h \
     gameobjectcontainer.h \
     propertyeditordelegate.h \
     objecttype.h \
-    objecttypemodel.h
+    objecttypemodel.h \
+    expressiondesigner.h \
+    expressionmodel.h \
+    expression.h \
+    expressioneditordelegate.h
 
 FORMS    += mainwindow.ui \
     editor.ui \
-    gameobjectcontainer.ui
+    gameobjectcontainer.ui \
+    expressiondesigner.ui
 
 RESOURCES += \
     icons.qrc

@@ -88,6 +88,8 @@ void MainWindow::applySetting(const QString &key, const QString &value) {
 }
 
 void MainWindow::addRecentFile(const QString &fileName) {
+	if (fileName.isEmpty()) return;
+
 	QJsonObject obj = settingsJson.object();
 	QJsonArray recent;
 	if (obj.contains("recent")) {
@@ -172,6 +174,8 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index) {
 
 void MainWindow::on_actionSelect_config_file_triggered() {
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Files (*.json)"));
+	if (fileName.isEmpty()) return;
+
     QString key = "configFile";
     applySetting(key, fileName);
 }

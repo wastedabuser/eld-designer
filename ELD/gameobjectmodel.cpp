@@ -77,10 +77,18 @@ bool GameObjectModel::setData(const QModelIndex &index, const QVariant &value, i
 Qt::ItemFlags GameObjectModel::flags(const QModelIndex &index) const {
 	Qt::ItemFlags defaultFlags = QAbstractItemModel::flags(index);
 
+//	| Qt::ItemIsDragEnabled
+
 	if (index.isValid())
-		return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDragEnabled | Qt::ItemIsDropEnabled | defaultFlags;
+		return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDropEnabled | defaultFlags;
 	else
-		return defaultFlags;
+		return Qt::ItemIsDropEnabled | defaultFlags;
+}
+
+QStringList GameObjectModel::mimeTypes() const {
+	QStringList types;
+	types << "application/eld-designer.object-type";
+	return types;
 }
 
 bool GameObjectModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) {

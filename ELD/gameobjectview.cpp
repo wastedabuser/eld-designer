@@ -1,5 +1,6 @@
 #include "gameobjectview.h"
 #include "hoverpoints.h"
+#include "propertymodel.h"
 
 #include <QLayout>
 #include <QPainter>

@@ -25,8 +25,12 @@ Qt::ItemFlags Property::flags(int column) const {
 }
 
 bool Property::setData(int column, const QVariant &val) {
-	if (column == 0) name = QVariant(val).toString();
-	else value = QVariant(val).toString();
+	QString v = QVariant(val).toString();
+	if (column == 0) name = v;
+	else {
+		if (v != value) value = v;
+		else return false;
+	}
 	return true;
 }
 

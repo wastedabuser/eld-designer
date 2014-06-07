@@ -1,6 +1,8 @@
 #ifndef ITEMDELEGATE_H
 #define ITEMDELEGATE_H
 
+#include "propertymodel.h"
+
 #include <QPushButton>
 #include <QStyledItemDelegate>
 
@@ -16,17 +18,19 @@ class PropertyEditorDelegate : public QStyledItemDelegate {
 	virtual void setEditorData ( QWidget *editor, const QModelIndex &index ) const;
 	virtual void setModelData ( QWidget *editor, QAbstractItemModel *model, const QModelIndex &index ) const;
 
+  public slots:
+	void on_fileBtn_clicked();
+	void on_colorBtn_clicked();
+	void on_expressionBtn_clicked();
+
+  private:
+	mutable PropertyModel* propertyModel;
 	mutable QString propertyType;
 	mutable QString propertyMeta;
 
 	mutable QWidget *editorContainer;
 	mutable QPushButton *actionBtn;
 	mutable QLineEdit *lineEditor;
-
-  public slots:
-	void on_fileBtn_clicked();
-	void on_colorBtn_clicked();
-
 };
 
 #endif // ITEMDELEGATE_H

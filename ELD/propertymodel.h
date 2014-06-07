@@ -1,6 +1,7 @@
 #ifndef PROPERTYMODEL_H
 #define PROPERTYMODEL_H
 
+#include "gameobject.h"
 #include "property.h"
 
 #include <QAbstractTableModel>
@@ -10,7 +11,7 @@ class PropertyModel : public QAbstractTableModel {
     Q_OBJECT
 
   public:
-	PropertyModel(const QString &typeName, const QJsonObject &obj, QObject *parent = 0);
+	PropertyModel(GameObject *gObject, const QString &typeName, const QJsonObject &obj, QObject *parent = 0);
     ~PropertyModel();
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
@@ -28,6 +29,8 @@ class PropertyModel : public QAbstractTableModel {
 	void setPropertyValue(const QString &name, const QString &value);
 	bool hasProperty(const QString &name, const QString &typeName);
 	void setPropertyTrigger(const QJsonObject &triggers);
+
+	GameObject *gameObject;
 
   signals:
 	void propertyChanged(const QString &name, const QString &value);

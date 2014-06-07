@@ -99,28 +99,28 @@ Here is an exmaple of a typical configuration.json
 			"properties": ["height", "rotation"]
 		}
 	],
-	"properties": {
-		"x": { 
+	"properties": [
+		{ 
 			"name": "x",
 			"type": "int" 
 		},
-		"y": { 
+		{ 
 			"name": "y",
 			"type": "int" 
 		},
-		"width": { 
+		{ 
 			"name": "width",
 			"type": "int" 
 		},
-		"height": { 
+		{ 
 			"name": "height",
 			"type": "int" 
 		},
-		"rotation": { 
+		{ 
 			"name": "rotation",
 			"type": "number" 
 		},
-		"unit": {
+		{
 			"name": "unit",
 			"type": "combo",
 			"options": [
@@ -134,12 +134,12 @@ Here is an exmaple of a typical configuration.json
 				}
 			]
 		},
-		"texture": {
+		{
 			"name": "texture",
 			"type": "file",
 			"meta": "*.png,*.jpg,*.jpeg,*.bmp"
 		}
-	}
+	]
 }
 ```
 

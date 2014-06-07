@@ -1,11 +1,13 @@
 #include "config.h"
 #include "propertymodel.h"
+#include "gameobjectmodel.h"
 #include "util.h"
 
 #include <QtGui>
 #include <QJsonObject>
 
-PropertyModel::PropertyModel(const QString &typeName, const QJsonObject &obj, QObject *parent): QAbstractTableModel(parent) {
+PropertyModel::PropertyModel(GameObject *gObject, const QString &typeName, const QJsonObject &obj, QObject *parent): QAbstractTableModel(parent) {
+	gameObject = gObject;
 	setJsonObject(typeName, obj);
 }
 
@@ -44,11 +46,13 @@ bool PropertyModel::setData(const QModelIndex &index, const QVariant &value, int
     if (index.isValid() && role == Qt::EditRole) {
 
         Property *item = getItem(index);
-        item->setData(index.column(), value);
-        emit dataChanged(index, index);
-		emit propertyChanged(item->name, item->value);
-
-        return true;
+		bool res = item->setData(index.column(), value);
+		if (res) {
+			emit dataChanged(index, index);
+			emit propertyChanged(item->name, item->value);
+			gameObject->gameObjectModel->onPropertyModelChanged(gameObject);
+		}
+		return res;
     }
     return false;
 }

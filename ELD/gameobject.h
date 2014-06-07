@@ -2,13 +2,13 @@
 #define GAMEOBJECT_H
 
 #include "gameobjectview.h"
-#include "propertymodel.h"
 
 #include <QList>
 #include <QVariant>
 #include <QVector>
 
 class GameObjectModel;
+class PropertyModel;
 
 class GameObject {
 
@@ -41,13 +41,13 @@ class GameObject {
 
 	QString type;
 	QString id;
+	GameObjectModel *gameObjectModel;
     PropertyModel *propertyModel;
 
   signals:
 	void propertyModelChanged();
 
   private:
-	GameObjectModel *gameObjectModel;
 	GameObject *parentItem;
 	QList<GameObject *> childItems;
 

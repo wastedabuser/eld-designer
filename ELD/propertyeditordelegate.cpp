@@ -1,3 +1,4 @@
+#include "expressiondesigner.h"
 #include "propertyeditordelegate.h"
 #include "propertymodel.h"
 #include <QComboBox>
@@ -17,8 +18,8 @@ PropertyEditorDelegate::~PropertyEditorDelegate() {
 }
 
 QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const {
-	PropertyModel* model = (PropertyModel*) index.model();
-	Property *prop = model->getItem(index);
+	propertyModel = (PropertyModel*) index.model();
+	Property *prop = propertyModel->getItem(index);
 	propertyMeta = prop->getMeta();
 	propertyType = prop->getType();
 
@@ -30,7 +31,7 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 			cb->addItem(obj["type"].toString(), QVariant(obj));
 		}
 		return cb;
-	} else if (propertyType == "file" || propertyType == "color") {
+	} else if (propertyType == "file" || propertyType == "color" || propertyType == "expression") {
 		editorContainer = new QWidget(parent);
 		QHBoxLayout *layout = new QHBoxLayout;
 		lineEditor = new QLineEdit;
@@ -44,6 +45,7 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 
 		if (propertyType == "file") connect(actionBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
 		else if (propertyType == "color") connect(actionBtn, SIGNAL(clicked()), this, SLOT(on_colorBtn_clicked()));
+		else if (propertyType == "expression") connect(actionBtn, SIGNAL(clicked()), this, SLOT(on_expressionBtn_clicked()));
 
 		return editorContainer;
 	}
@@ -63,6 +65,12 @@ void PropertyEditorDelegate::on_colorBtn_clicked() {
 	emit commitData(editorContainer);
 }
 
+void PropertyEditorDelegate::on_expressionBtn_clicked() {
+	QString expression = ExpressionDesigner::getExpression(lineEditor->text(), propertyModel->gameObject->gameObjectModel, actionBtn);
+	lineEditor->setText(expression);
+	emit commitData(editorContainer);
+}
+
 void PropertyEditorDelegate::destroyEditor(QWidget * editor, const QModelIndex & index) const {
 	if (propertyType == "file") disconnect(actionBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
 	QStyledItemDelegate::destroyEditor(editor, index);
@@ -70,7 +78,7 @@ void PropertyEditorDelegate::destroyEditor(QWidget * editor, const QModelIndex &
 
 void PropertyEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const {
 	QString currentText = index.data(Qt::EditRole).toString();
-	if (propertyType == "file" || propertyType == "color") {
+	if (propertyType == "file" || propertyType == "color" || propertyType == "expression") {
 		lineEditor->setText(currentText);
 	} else if (QComboBox *cb = qobject_cast<QComboBox *>(editor)) {
 		int cbIndex = cb->findText(currentText);
@@ -82,7 +90,7 @@ void PropertyEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &i
 }
 
 void PropertyEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const {
-	if (propertyType == "file" || propertyType == "color") {
+	if (propertyType == "file" || propertyType == "color" || propertyType == "expression") {
 		model->setData(index, lineEditor->text());
 	} else if (QComboBox *cb = qobject_cast<QComboBox *>(editor)) {
 		PropertyModel *pm = (PropertyModel*) model;
