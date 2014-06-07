@@ -21,6 +21,7 @@ class MainWindow : public QMainWindow {
 	~MainWindow();
     void addEditor(const QString& label, const QString &fileName = "");
     void readSettings();
+	void loadConfig();
     void applySetting(const QString& key, const QString& value);
 	void addRecentFile(const QString &fileName);
 	void clearRecentFiles();
@@ -53,6 +54,8 @@ class MainWindow : public QMainWindow {
 	void on_actionClear_Recent_List_triggered();
 
 	void on_recentFileOpenAction_triggered();
+
+	void on_actionReload_config_file_triggered();
 
   private:
 	Ui::MainWindow *ui;

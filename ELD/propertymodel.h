@@ -26,7 +26,7 @@ class PropertyModel : public QAbstractTableModel {
 	QJsonObject getJsonObject();
 	void setJsonObject(const QString &typeName, const QJsonObject &propData);
 	QString getPropertyValue(const QString &name, const QString &typeName);
-	void setPropertyValue(const QString &name, const QString &value);
+	bool setPropertyValue(const QString &name, const QString &value);
 	bool hasProperty(const QString &name, const QString &typeName);
 	void setPropertyTrigger(const QJsonObject &triggers);
 

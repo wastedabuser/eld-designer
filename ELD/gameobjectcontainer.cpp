@@ -86,10 +86,14 @@ void GameObjectContainer::addGameObject(GameObject *obj, bool doUpdate) {
 		views.append(view);
 		hViews[list[i]] = view;
 
-		view->createRelatedViewsBoundingRectangle();
-
 		connect(view, SIGNAL(viewChanged(GameObjectView*)),
 				this, SLOT(handleViewChange(GameObjectView *)));
+	}
+
+	for (int i = 0; i < list.size(); i++) {
+		GameObject *obj = list[i];
+		if (!hViews.contains(obj)) continue;
+		hViews[obj]->propagateViewChange();
 	}
 
 	if (doUpdate) updateCanvas();

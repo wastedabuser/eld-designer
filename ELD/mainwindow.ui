@@ -154,6 +154,7 @@
      <string>Tools</string>
     </property>
     <addaction name="actionSelect_config_file"/>
+    <addaction name="actionReload_config_file"/>
    </widget>
    <widget class="QMenu" name="menuEdit">
     <property name="title">
@@ -289,6 +290,11 @@
   <action name="actionClear_Recent_List">
    <property name="text">
     <string>Clear Recent List</string>
+   </property>
+  </action>
+  <action name="actionReload_config_file">
+   <property name="text">
+    <string>Reload config file</string>
    </property>
   </action>
  </widget>

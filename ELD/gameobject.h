@@ -19,6 +19,7 @@ class GameObject {
 
     GameObject *child(int number);
 	QList<GameObject *> getChildrenListDeep();
+	QList<GameObject *> getParentsList();
 	QList<GameObject *> getChildren();
 	GameObject *cloneDeep();
     int childCount() const;

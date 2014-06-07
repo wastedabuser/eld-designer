@@ -22,7 +22,7 @@ class GameObjectView : public QObject {
 	void setDelta(int dx, int dy);
 	void setRotation(qreal r);
 	void setZoomChange(double sf);
-	void createRelatedViewsBoundingRectangle();
+	void propagateViewChange();
 	void commitPositionProperties();
 	void fetchSizeProperties();
 	void fetchRotationProperty();
@@ -47,7 +47,8 @@ class GameObjectView : public QObject {
 
   private:
 	GameObjectContainer *container;
-	QList<GameObjectView *> relatedViews;
+	QList<GameObjectView *> childViews;
+	QList<GameObjectView *> parentViews;
 	QImage image;
 	QRectF rectangle;
 	HoverPoints *polyline;
@@ -55,11 +56,12 @@ class GameObjectView : public QObject {
 	HoverPoints *hoverPoints;
 	QPolygonF controlPolygon;
 
+	bool hasPosition;
 	int width;
 	int height;
 	double zoomFactor;
 	double rotation;
-	bool canRotate;
+	bool hasRotation;
 	bool hasBgColor;
 	QColor bgColor;
 	bool hasAlpha;

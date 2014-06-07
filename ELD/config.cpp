@@ -15,6 +15,14 @@ QHash<QString, QJsonArray> Config::alowedChildObject = QHash<QString, QJsonArray
 QHash<QString, QJsonObject> Config::expressionsDefinitions = QHash<QString, QJsonObject>();
 
 void Config::setConfig(const QJsonDocument &configJson) {
+	Config::typesDefinitions.clear();
+	Config::typesListByCategory.clear();
+	Config::propertiesByObjectType.clear();
+	Config::propertiesDefinitions.clear();
+	Config::alowedChildObject.clear();
+	Config::expressionsDefinitions.clear();
+
+
 	QJsonObject configObj = configJson.object();
 
 	Config::categoriesRef = configObj["categories"].toArray();

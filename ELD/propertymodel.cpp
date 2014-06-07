@@ -101,14 +101,18 @@ QString PropertyModel::getPropertyValue(const QString &name, const QString &type
 	return QString();
 }
 
-void PropertyModel::setPropertyValue(const QString &name, const QString &value) {
+bool PropertyModel::setPropertyValue(const QString &name, const QString &value) {
 	for (int i = 0; i < properties.size(); ++i) {
 		if (properties[i]->name == name) {
-			properties[i]->value = value;
-			emit dataChanged(QModelIndex().sibling(i,1), QModelIndex().sibling(i,1));
-			return;
+			if (properties[i]->value != value) {
+				properties[i]->value = value;
+				emit dataChanged(QModelIndex().sibling(i,1), QModelIndex().sibling(i,1));
+				return true;
+			}
+			return false;
 		}
 	}
+	return false;
 }
 
 bool PropertyModel::hasProperty(const QString &name, const QString &typeName) {
@@ -132,8 +136,9 @@ void PropertyModel::setPropertyTrigger(const QJsonObject &triggers) {
 	}
 	if (!name.isEmpty()) {
 		QString value = triggers["$" + name].toString();
-		setPropertyValue(name, value);
-		Util::warn("Changed tied property " + name);
-		emit propertyChanged(name, value);
+		if (setPropertyValue(name, value)) {
+			Util::warn("Changed tied property " + name);
+			emit propertyChanged(name, value);
+		}
 	}
 }

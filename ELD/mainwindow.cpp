@@ -38,13 +38,17 @@ void MainWindow::readSettings() {
     configFile = obj["configFile"].toString();
 	updateRecentMenu();
 
-	if (!configFile.isEmpty()) {
-		QJsonDocument configJson = JsonIO::readJson(configFile);
-		Config::setConfig(configJson);
-		Util::warn("Config loaded ", configFile);
+	loadConfig();
+}
 
-		initObjectTypes();
-	}
+void MainWindow::loadConfig() {
+	if (configFile.isEmpty()) return;
+
+	QJsonDocument configJson = JsonIO::readJson(configFile);
+	Config::setConfig(configJson);
+	Util::warn("Config loaded ", configFile);
+
+	initObjectTypes();
 }
 
 void MainWindow::initObjectTypes() {
@@ -59,11 +63,13 @@ void MainWindow::initObjectTypes() {
 		listView->setDragEnabled(true);
 		QWidget *w = ui->toolBox->widget(i);
 		if (w) {
-			 QVBoxLayout *layout = new QVBoxLayout();
-			 layout->setMargin(0);
-			 layout->addWidget(listView);
-			 w->setLayout(layout);
-			 ui->toolBox->setItemText(i, cat["name"].toString());
+			QLayout *l = w->layout();
+			if (l) delete l;
+			QVBoxLayout *layout = new QVBoxLayout();
+			layout->setMargin(0);
+			layout->addWidget(listView);
+			w->setLayout(layout);
+			ui->toolBox->setItemText(i, cat["name"].toString());
 		} else {
 			ui->toolBox->addItem(listView, cat["name"].toString());
 		}
@@ -239,4 +245,8 @@ void MainWindow::on_recentFileOpenAction_triggered() {
 	QString fileName = action->text();
 	QFileInfo info1(fileName);
 	MainWindow::addEditor(info1.fileName(), fileName);
+}
+
+void MainWindow::on_actionReload_config_file_triggered() {
+	loadConfig();
 }

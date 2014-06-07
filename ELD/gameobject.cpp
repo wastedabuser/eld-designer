@@ -41,6 +41,18 @@ QList<GameObject *> GameObject::getChildrenListDeep() {
 	return list;
 }
 
+QList<GameObject *> GameObject::getParentsList() {
+	QList<GameObject *> list;
+	if (parentItem) {
+		list.append(parentItem);
+		QList<GameObject *> pList = parentItem->getParentsList();
+		for (int j = 0; j < pList.size(); j++) {
+			list.append(pList[j]);
+		}
+	}
+	return list;
+}
+
 QList<GameObject *> GameObject::getChildren() {
 	QList<GameObject *> list(childItems);
 	return list;
@@ -116,10 +128,8 @@ QString GameObject::getPropertyValue(const QString &name) {
 }
 
 void GameObject::setPropertyValue(const QString &name, const QString &value) {
-	if (propertyModel) {
-		propertyModel->setPropertyValue(name, value);
-		gameObjectModel->onPropertyModelChanged(this);
-	}
+	if (!propertyModel) return;
+	if (propertyModel->setPropertyValue(name, value)) gameObjectModel->onPropertyModelChanged(this);
 }
 
 bool GameObject::hasProperty(const QString &name) {

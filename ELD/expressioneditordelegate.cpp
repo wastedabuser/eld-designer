@@ -2,6 +2,7 @@
 #include "expressionmodel.h"
 
 #include <QComboBox>
+#include <QCompleter>
 
 ExpressionEditorDelegate::ExpressionEditorDelegate() {
 
@@ -14,10 +15,13 @@ ExpressionEditorDelegate::~ExpressionEditorDelegate() {
 QWidget* ExpressionEditorDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const {
 	ExpressionModel* model = (ExpressionModel*) index.model();
 	Expression *prop = model->getItem(index);
-
-	QComboBox *cb = new QComboBox(parent);
-	cb->setEditable(true);
 	QStringList options = prop->getOptions(index.column());
+
+	QCompleter *completer = new QCompleter(parent);
+	completer->setCaseSensitivity(Qt::CaseInsensitive);
+	QComboBox *cb = new QComboBox(parent);
+	cb->setCompleter(completer);
+	cb->setEditable(true);
 	for (int i = 0; i < options.size(); i++) {
 		QString obj = options[i];
 		cb->addItem(obj);

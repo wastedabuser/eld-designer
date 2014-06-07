@@ -8,6 +8,7 @@
 #include <QFileDialog>
 #include <QHBoxLayout>
 #include <QColorDialog>
+#include <QCheckBox>
 
 PropertyEditorDelegate::PropertyEditorDelegate(QObject *parent): QStyledItemDelegate(parent) {
 
@@ -30,6 +31,10 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 			QJsonObject obj = options[i].toObject();
 			cb->addItem(obj["type"].toString(), QVariant(obj));
 		}
+		return cb;
+	} else if (propertyType == "check") {
+		QCheckBox *cb = new QCheckBox(parent);
+
 		return cb;
 	} else if (propertyType == "file" || propertyType == "color" || propertyType == "expression") {
 		editorContainer = new QWidget(parent);
