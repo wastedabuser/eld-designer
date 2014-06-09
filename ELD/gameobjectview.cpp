@@ -98,21 +98,17 @@ void GameObjectView::onPointsChangeStart() {
 
 void GameObjectView::onPointsChanged(const QPolygonF &points) {
 	QPointF trans = points.at(0) - controlPolygon.at(0);
+	if (trans.isNull()) return;
 
-	if (points.size() > 1 && qAbs(points.at(0).x() - points.at(1).x()) < 10 && qAbs(points.at(0).y() - points.at(1).y()) < 10)
-		hoverPoints->setPoints(controlPolygon);
+	controlPolygon[0] = points.at(0);
+	if (controlPolygon.size() > 1) controlPolygon[1] += trans;
+	hoverPoints->setPoints(controlPolygon);
 
-	if (!trans.isNull()) {
-		controlPolygon[0] = points.at(0);
-		if (controlPolygon.size() > 1) controlPolygon[1] += trans;
-		hoverPoints->setPoints(controlPolygon);
-
-		for (int i = 0; i < childViews.size(); i++) {
-			childViews[i]->setDelta(trans.x(), trans.y());
-		}
-
-		if (polyline) polyline->movePolygonDelta(trans);
+	for (int i = 0; i < childViews.size(); i++) {
+		childViews[i]->setDelta(trans.x(), trans.y());
 	}
+
+	if (polyline) polyline->movePolygonDelta(trans);
 	controlPolygon = points;
 
 	if (controlPolygon.size() > 1) {
@@ -177,8 +173,6 @@ void GameObjectView::setZoomChange(double sf) {
 }
 
 void GameObjectView::setDelta(int dx, int dy) {
-//	if (dx == 0 && dy == 0) return;
-
 	for (int i = 0; i < controlPolygon.size(); i++) {
 		controlPolygon[i].setX(controlPolygon[i].x() + dx);
 		controlPolygon[i].setY(controlPolygon[i].y() + dy);
@@ -225,15 +219,30 @@ void GameObjectView::onPropertyModelUpdated(const QString &name, const QString &
 }
 
 QRect GameObjectView::bouds() {
+	if (polyline) return polyline->getBounds();
 	return hoverPoints->getBounds();
 }
 
 void GameObjectView::propagateViewChange() {
 	cacheRelatedViews();
 	QString shape = gameObject->getPropertyValue("shape");
-	if (shape == "bounds") {
-		QRect r = container->getViewsBounds(childViews);
-		rectangle = QRectF((r.x() - controlPolygon[0].x()) / zoomFactor, (r.y() - controlPolygon[0].y()) / zoomFactor, r.width() / zoomFactor, r.height() / zoomFactor);
+	if (!shape.isEmpty()) {
+		QList<GameObjectView *> meAndChilds;
+		meAndChilds.append(childViews);
+		meAndChilds.append(this);
+		QRect r = container->getViewsBounds(meAndChilds);
+		if (!hasPosition) {
+			controlPolygon[0].setX(r.x() + r.width() / 2);
+			controlPolygon[0].setY(r.y() + r.height() / 2);
+			hoverPoints->setPoints(controlPolygon);
+		}
+		if (shape == "bounds") {
+			double x = (r.x() - controlPolygon[0].x()) / zoomFactor;
+			double y = (r.y() - controlPolygon[0].y()) / zoomFactor;
+			double w = r.width() / zoomFactor;
+			double h = r.height() / zoomFactor;
+			rectangle = QRectF(x, y, w, h);
+		}
 	}
 }
 
