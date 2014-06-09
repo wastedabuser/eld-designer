@@ -34,14 +34,13 @@ void MainWindow::readSettings() {
     settingsJson = JsonIO::readJson(settingsFile);
     if (settingsJson.isNull()) return;
 
-    QJsonObject obj = settingsJson.object();
-    configFile = obj["configFile"].toString();
-	updateRecentMenu();
-
 	loadConfig();
+	updateRecentMenu();
 }
 
 void MainWindow::loadConfig() {
+	QJsonObject obj = settingsJson.object();
+	QString configFile = obj["configFile"].toString();
 	if (configFile.isEmpty()) return;
 
 	QJsonDocument configJson = JsonIO::readJson(configFile);
@@ -184,6 +183,7 @@ void MainWindow::on_actionSelect_config_file_triggered() {
 
     QString key = "configFile";
     applySetting(key, fileName);
+	loadConfig();
 }
 
 void MainWindow::on_actionSave_triggered() {

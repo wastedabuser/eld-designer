@@ -61,7 +61,6 @@ class MainWindow : public QMainWindow {
 	Ui::MainWindow *ui;
     QString settingsFile;
     QJsonDocument settingsJson;
-    QString configFile;
     QStringList types;
     int editorCnt;
 	GameObject *copiedGameObject;

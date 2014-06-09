@@ -98,17 +98,18 @@ void GameObjectView::onPointsChangeStart() {
 
 void GameObjectView::onPointsChanged(const QPolygonF &points) {
 	QPointF trans = points.at(0) - controlPolygon.at(0);
-	if (trans.isNull()) return;
 
-	controlPolygon[0] = points.at(0);
-	if (controlPolygon.size() > 1) controlPolygon[1] += trans;
-	hoverPoints->setPoints(controlPolygon);
+	if (!trans.isNull()) {
+		controlPolygon[0] = points.at(0);
+		if (controlPolygon.size() > 1) controlPolygon[1] += trans;
+		hoverPoints->setPoints(controlPolygon);
 
-	for (int i = 0; i < childViews.size(); i++) {
-		childViews[i]->setDelta(trans.x(), trans.y());
+		for (int i = 0; i < childViews.size(); i++) {
+			childViews[i]->setDelta(trans.x(), trans.y());
+		}
+
+		if (polyline) polyline->movePolygonDelta(trans);
 	}
-
-	if (polyline) polyline->movePolygonDelta(trans);
 	controlPolygon = points;
 
 	if (controlPolygon.size() > 1) {
@@ -281,6 +282,10 @@ void GameObjectView::fetchShapeProperty() {
 
 void GameObjectView::onPolylineChangeComplete() {
 	gameObject->setPropertyValue("lineCoordinates", polyline->toJsonString());
+	for (int i = 0; i < parentViews.size(); i++) {
+		parentViews[i]->propagateViewChange();
+	}
+	emit viewChanged(this);
 }
 
 void GameObjectView::fetchTextureProperty() {
@@ -302,6 +307,8 @@ void GameObjectView::commitPositionProperties() {
 		gameObject->setPropertyValue("y", QString::number(qRound(controlPolygon[0].y() / zoomFactor)));
 	}
 	if (hasRotation) gameObject->setPropertyValue("rotation", QString::number(rotation));
+	if (polyline) gameObject->setPropertyValue("lineCoordinates", polyline->toJsonString());
+
 	for (int i = 0; i < childViews.size(); i++) {
 		childViews[i]->commitPositionProperties();
 	}

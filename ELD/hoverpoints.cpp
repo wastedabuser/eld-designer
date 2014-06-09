@@ -195,7 +195,7 @@ void HoverPoints::movePolygonDelta(QPointF dp) {
 	for (int i=0; i < m_points.size(); ++i) {
 		m_points[i] += dp;
 	}
-	emit pointsChangeComplete();
+	firePointChange();
 }
 
 void HoverPoints::moveDelta(int dx, int dy) {
