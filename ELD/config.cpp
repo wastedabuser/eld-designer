@@ -3,7 +3,6 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-QJsonObject Config::rootObject = QJsonObject();
 QJsonArray Config::categoriesRef = QJsonArray();
 QJsonArray Config::expressionsRef = QJsonArray();
 
@@ -26,9 +25,6 @@ void Config::setConfig(const QJsonDocument &configJson) {
 	QJsonObject configObj = configJson.object();
 
 	Config::categoriesRef = configObj["categories"].toArray();
-
-	Config::rootObject = configObj["rootObject"].toObject();
-	Config::alowedChildObject.insert(rootObject["type"].toString(), rootObject["children"].toArray());
 
 	QJsonArray objectsArray = configObj["objects"].toArray();
 	for (int i = 0; i < objectsArray.size(); ++i) {

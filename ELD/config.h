@@ -9,7 +9,6 @@
 class Config {
 
   public:
-	static QJsonObject rootObject;
 	static QJsonArray categoriesRef;
 	static QJsonArray expressionsRef;
 	static QHash<QString, QJsonArray> propertiesByObjectType;

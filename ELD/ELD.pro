@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     expressiondesigner.cpp \
     expressionmodel.cpp \
     expression.cpp \
-    expressioneditordelegate.cpp
+    expressioneditordelegate.cpp \
+    newdocumentwizard.cpp
 
 HEADERS  += mainwindow.h \
     editor.h \
@@ -51,12 +52,14 @@ HEADERS  += mainwindow.h \
     expressiondesigner.h \
     expressionmodel.h \
     expression.h \
-    expressioneditordelegate.h
+    expressioneditordelegate.h \
+    newdocumentwizard.h
 
 FORMS    += mainwindow.ui \
     editor.ui \
     gameobjectcontainer.ui \
-    expressiondesigner.ui
+    expressiondesigner.ui \
+    newdocumentwizard.ui
 
 RESOURCES += \
     icons.qrc

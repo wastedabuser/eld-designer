@@ -131,14 +131,13 @@ void PropertyModel::setPropertyTrigger(const QJsonObject &triggers) {
 		QString k = tied[i];
 		if (k.left(1) == "$") {
 			name = k.right(k.length() - 1);
-			break;
-		}
-	}
-	if (!name.isEmpty()) {
-		QString value = triggers["$" + name].toString();
-		if (setPropertyValue(name, value)) {
-			Util::warn("Changed tied property " + name);
-			emit propertyChanged(name, value);
+			if (name.isEmpty()) continue;
+
+			QString value = triggers["$" + name].toString();
+			if (setPropertyValue(name, value)) {
+				Util::warn("Changed tied property " + name);
+				emit propertyChanged(name, value);
+			}
 		}
 	}
 }

@@ -8,9 +8,13 @@ ExpressionDesigner *ExpressionDesigner::dialog;
 QString ExpressionDesigner::getExpression(QString expr, GameObjectModel *gObjectModel, QWidget *parent) {
 	ExpressionDesigner::dialog = new ExpressionDesigner(expr, gObjectModel, parent);
 	int code = ExpressionDesigner::dialog->exec();
-	if (code == Rejected) return expr;
 
-	QString data = ExpressionDesigner::dialog->getExpressionData();
+	QString data;
+	if (code == Rejected)
+		data = expr;
+	else
+		data = ExpressionDesigner::dialog->getExpressionData();
+
 	delete ExpressionDesigner::dialog;
 	return data;
 }

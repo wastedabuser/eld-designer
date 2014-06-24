@@ -11,17 +11,13 @@ GameObject::GameObject(GameObjectModel *model, const QJsonObject &obj, GameObjec
 	gameObjectModel = model;
 	parentItem = parent;
 
-	if (obj.isEmpty()) {
-		type = Config::rootObject["type"].toString();
-		propertyModel = 0;
-	} else {
-		type = obj["type"].toString();
-		id = obj["id"].toString();
-		propertyModel = new PropertyModel(this, type, obj["properties"].toObject());
+	type = obj["type"].toString();
+	id = obj["id"].toString();
+	propertyModel = new PropertyModel(this, type, obj["properties"].toObject());
 
-		QJsonArray children = obj["children"].toArray();
-		if (!children.isEmpty()) createChildrenFromJsonArray(children);
-	}
+	QJsonArray children = obj["children"].toArray();
+	if (!children.isEmpty()) createChildrenFromJsonArray(children);
+
 }
 
 GameObject::~GameObject() {

@@ -39,21 +39,23 @@ Editor::~Editor() {
     delete ui;
 }
 
+void Editor::createNew(QJsonObject &obj) {
+	gameObjectModel->setJsonObject(obj);
+}
+
 void Editor::load(const QString &fileNm) {
 	fileName = fileNm;
 	if (fileName.isEmpty()) return;
 
 	QJsonDocument doc = JsonIO::readJson(fileName);
-	QList<GameObject *> list = gameObjectModel->setJson(doc);
-	for (int i = list.size() - 1; i >= 0; i--) {
-		gameObjectContainer->addGameObject(list[i], false);
-	}
+	gameObjectModel->setJson(doc);
+	gameObjectContainer->addGameObject(gameObjectModel->rootItem, false);
 	gameObjectContainer->updateCanvas();
 }
 
 void Editor::save() {
 	if (fileName.isEmpty()) {
-        fileName = QFileDialog::getSaveFileName(this, tr("Open File"), "", tr("Files (*.txt;*.json;*.lvjson;*.aijson)"));
+		fileName = QFileDialog::getSaveFileName(this, tr("Open File"), "", tr("Files (*.txt;*.json)"));
 		mainWindow->addRecentFile(fileName);
 	}
 
@@ -123,6 +125,8 @@ void Editor::applyGameObjectsOrder() {
 }
 
 void Editor::onGameObjectChanged() {
+	if (!parentWidget()) return;
+
 	QTabWidget *tabs = (QTabWidget*) parentWidget()->parentWidget();
 	QString label = tabs->tabText(tabIndex);
 	if (label.right(3) == "[*]") return;
@@ -139,7 +143,8 @@ void Editor::on_addNode_clicked() {
 
 void Editor::on_gameObject_selected(GameObject *obj) {
 	QModelIndex newIndex = gameObjectModel->getGameObjectIndex(obj);
-	ui->treeView->selectionModel()->setCurrentIndex(newIndex, QItemSelectionModel::ClearAndSelect);
+	if (newIndex.isValid())
+		ui->treeView->selectionModel()->setCurrentIndex(newIndex, QItemSelectionModel::ClearAndSelect);
 	ui->tableView->setModel(obj->propertyModel);
 }
 
@@ -161,10 +166,6 @@ void Editor::on_treeView_clicked(const QModelIndex &index) {
 	GameObject *item = gameObjectModel->getItem(index);
 	ui->tableView->setModel(item->propertyModel);
 	gameObjectContainer->selectGameObject(item);
-}
-
-void Editor::on_addRootNode_clicked() {
-	addNode(QModelIndex());
 }
 
 void Editor::on_moveNodeUp_clicked() {
@@ -194,7 +195,10 @@ void Editor::on_moveNodeDown_clicked() {
 		view->selectionModel()->setCurrentIndex(newIndex, QItemSelectionModel::ClearAndSelect);
 }
 
-void Editor::on_expandTree_clicked() {
+void Editor::on_editRoot_clicked() {
 	QTreeView *view = ui->treeView;
-	view->expandAll();
+	view->selectionModel()->clearCurrentIndex();
+	view->clearSelection();
+
+	ui->tableView->setModel(gameObjectModel->rootItem->propertyModel);
 }

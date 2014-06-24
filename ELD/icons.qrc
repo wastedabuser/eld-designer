@@ -15,5 +15,6 @@
         <file>icons/page_paste.png</file>
         <file>icons/table_lightning.png</file>
         <file>icons/cut.png</file>
+        <file>icons/table_edit.png</file>
     </qresource>
 </RCC>

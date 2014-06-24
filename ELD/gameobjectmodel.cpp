@@ -8,16 +8,16 @@
 
 GameObjectModel::GameObjectModel(QObject *parent) : QAbstractItemModel(parent) {
 	itemIdCount = 1;
-	rootItem = new GameObject(this, QJsonObject());
+	rootItem = 0;
 }
 
 GameObjectModel::~GameObjectModel() {
-    delete rootItem;
+	if (rootItem) delete rootItem;
 }
 
 int GameObjectModel::rowCount(const QModelIndex &parent) const {
+	if (!rootItem) return 0;
 	GameObject *parentItem = getItem(parent);
-
 	return parentItem->childCount();
 }
 
@@ -26,6 +26,8 @@ int GameObjectModel::columnCount(const QModelIndex & /* parent */) const {
 }
 
 QModelIndex GameObjectModel::index(int row, int column, const QModelIndex &parent) const {
+	if (!rootItem) return QModelIndex();
+
 	if (parent.isValid() && parent.column() != 0)
 		return QModelIndex();
 
@@ -116,6 +118,7 @@ bool GameObjectModel::dropMimeData(const QMimeData *data, Qt::DropAction action,
 }
 
 QModelIndex GameObjectModel::getGameObjectIndex(GameObject *obj) const {
+	if (obj == rootItem) return QModelIndex();
 	return createIndex(obj->childNumber(), 0, obj);
 }
 
@@ -141,17 +144,17 @@ QJsonDocument GameObjectModel::getJson() {
 	return doc;
 }
 
-QList<GameObject *> GameObjectModel::setJson(const QJsonDocument &doc) {
+void GameObjectModel::setJson(const QJsonDocument &doc) {
 	QJsonObject obj = doc.object();
 	if (obj.isEmpty()) Util::warn("Document is empty");
-	rootItem->type = obj["type"].toString();
 
-	QJsonArray list = obj["children"].toArray();
-	if (list.isEmpty()) return QList<GameObject *>();
+	setJsonObject(obj);
+}
+
+void GameObjectModel::setJsonObject(const QJsonObject &obj) {
 	beginInsertRows(QModelIndex(), 0, 0);
-	rootItem->createChildrenFromJsonArray(list);
+	rootItem = new GameObject(this, obj);
 	endInsertRows();
-	return rootItem->getChildren();
 }
 
 bool GameObjectModel::canCreateObject(const QString &typeName, const QModelIndex &index) {

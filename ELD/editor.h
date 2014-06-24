@@ -23,6 +23,7 @@ class Editor : public QWidget {
 	QList<QJsonObject> getPropertiesForType(const QString &typeName);
 	void save();
 	void load(const QString &fileNm);
+	void createNew(QJsonObject &obj);
 	void addNode(const QModelIndex &index);
 	void zoomIn();
 	void zoomOut();
@@ -46,15 +47,13 @@ class Editor : public QWidget {
 
 	void on_treeView_clicked(const QModelIndex &index);
 
-	void on_addRootNode_clicked();
-
 	void on_moveNodeUp_clicked();
 
 	void on_moveNodeDown_clicked();
 
-	void on_expandTree_clicked();
+	void on_editRoot_clicked();
 
-  private:
+	private:
 	Ui::Editor *ui;
 	MainWindow *mainWindow;
 	GameObjectModel *gameObjectModel;

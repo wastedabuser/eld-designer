@@ -2,6 +2,7 @@
 #include "editor.h"
 #include "jsonio.h"
 #include "mainwindow.h"
+#include "newdocumentwizard.h"
 #include "objecttypemodel.h"
 #include "ui_mainwindow.h"
 #include "util.h"
@@ -141,7 +142,11 @@ void MainWindow::addEditor(const QString &label, const QString &fileName) {
 	QTabWidget *tabs = ui->tabWidget;
 
 	Editor *editor = new Editor(this);
-	editor->load(fileName);
+	if (fileName.isEmpty()) {
+		QJsonObject obj = NewDocumentWizard::getDocumentJsonObject(this);
+		editor->createNew(obj);
+	} else
+		editor->load(fileName);
 
     tabs->addTab(editor, label);
     tabs->setCurrentWidget(editor);
@@ -156,7 +161,7 @@ void MainWindow::copyGameObject(GameObject *obj) {
 }
 
 void MainWindow::on_actionOpen_triggered() {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Files (*.txt;*.json;*.lvjson;*.aijson)"));
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Files (*.txt;*.json)"));
     if (fileName.isEmpty()) return;
 
     QFileInfo info1(fileName);
@@ -178,7 +183,7 @@ void MainWindow::on_tabWidget_tabCloseRequested(int index) {
 }
 
 void MainWindow::on_actionSelect_config_file_triggered() {
-    QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Files (*.json)"));
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Files (*.txt;*.json)"));
 	if (fileName.isEmpty()) return;
 
     QString key = "configFile";

@@ -79,11 +79,11 @@ Please, note that the application will not report parse errors! So it is best to
 Here is an exmaple of a typical configuration.json
 ```
 {
-	"rootObject": {
-		"type": "Level",
-		"children": ["LayerType1"]
-	},
 	"objects": [
+		{
+			"type": "Level",
+			"children": ["LayerType1"]
+		},
 		{ 
 			"type": "LayerType1",
 			"children": ["ObjectType1", "ZoneType1"]
