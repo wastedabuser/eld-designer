@@ -15,6 +15,8 @@ GameObject::GameObject(GameObjectModel *model, const QJsonObject &obj, GameObjec
 	id = obj["id"].toString();
 	propertyModel = new PropertyModel(this, type, obj["properties"].toObject());
 
+	if (gameObjectModel) gameObjectModel->objectsById[id] = this;
+
 	QJsonArray children = obj["children"].toArray();
 	if (!children.isEmpty()) createChildrenFromJsonArray(children);
 

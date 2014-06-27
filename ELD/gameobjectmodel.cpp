@@ -7,7 +7,7 @@
 #include "util.h"
 
 GameObjectModel::GameObjectModel(QObject *parent) : QAbstractItemModel(parent) {
-	itemIdCount = 1;
+	idCounter = 1;
 	rootItem = 0;
 }
 
@@ -68,6 +68,12 @@ bool GameObjectModel::setData(const QModelIndex &index, const QVariant &value, i
 		return false;
 
 	GameObject *item = getItem(index);
+	if (objectsById.contains(value.toString()) && objectsById[value.toString()] != item) {
+		QMessageBox messageBox;
+		messageBox.warning(0, tr("Not allowed"), tr("The specified id of the item already exists!"));
+		return false;
+	}
+
 	item->id = value.toString();
 
 	emit dataChanged(index, index);
@@ -133,14 +139,16 @@ GameObject *GameObjectModel::getItem(const QModelIndex &index) const {
 QString GameObjectModel::getNextGameObjectId(const QString &typeName) {
 	QString id = "-";
 	id.prepend(typeName);
-	id.append(QString::number(itemIdCount));
-	itemIdCount++;
+	id.append(QString::number(idCounter));
+	idCounter++;
 	return id;
 }
 
 QJsonDocument GameObjectModel::getJson() {
+	QJsonObject obj = rootItem->getJsonObject();
+	obj["idCounter"] = idCounter;
 	QJsonDocument doc;
-	doc.setObject(rootItem->getJsonObject());
+	doc.setObject(obj);
 	return doc;
 }
 
@@ -152,6 +160,7 @@ void GameObjectModel::setJson(const QJsonDocument &doc) {
 }
 
 void GameObjectModel::setJsonObject(const QJsonObject &obj) {
+	idCounter = obj["idCounter"].toInt();
 	beginInsertRows(QModelIndex(), 0, 0);
 	rootItem = new GameObject(this, obj);
 	endInsertRows();

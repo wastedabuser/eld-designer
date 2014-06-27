@@ -111,7 +111,6 @@ GameObject *Editor::cutGameObject() {
 void Editor::pasteGameObject(GameObject *obj) {
 	QTreeView *view = ui->treeView;
 	QModelIndex index = view->selectionModel()->currentIndex();
-	if (!index.isValid()) return;
 
 	gameObjectModel->appendGameObjectFromJsonObject(obj->getJsonObject(), index);
 }

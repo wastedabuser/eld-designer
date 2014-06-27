@@ -38,13 +38,14 @@ class GameObjectModel : public QAbstractItemModel {
 	void onPropertyModelChanged(GameObject *obj);
 
 	GameObject *rootItem;
+	QHash<QString, GameObject *> objectsById;
 
   signals:
 	void gameObjectChanged();
 	void gameObjectAdded(GameObject *);
 
   private:
-	int itemIdCount;
+	int idCounter;
 };
 
 #endif
