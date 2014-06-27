@@ -29,7 +29,9 @@ Editor::Editor(MainWindow *mainW, QWidget *parent) : QWidget(parent),
 	ui->scrollArea->setWidget(gameObjectContainer);
 
 	connect(gameObjectContainer, SIGNAL(gameObjectSelect(GameObject *)), this, SLOT(on_gameObject_selected(GameObject *)));
+
 	connect(gameObjectModel, SIGNAL(gameObjectChanged()), this, SLOT(onGameObjectChanged()));
+	connect(gameObjectModel, SIGNAL(gameObjectAdded(GameObject *)), this, SLOT(onGameObjectAdded(GameObject *)));
 }
 
 Editor::~Editor() {
@@ -41,6 +43,7 @@ Editor::~Editor() {
 
 void Editor::createNew(QJsonObject &obj) {
 	gameObjectModel->setJsonObject(obj);
+	gameObjectContainer->addGameObject(gameObjectModel->rootItem);
 }
 
 void Editor::load(const QString &fileNm) {
@@ -80,10 +83,7 @@ void Editor::addNode(const QModelIndex &index) {
 	if (!tp) return;
 
 	QString typeName = tp->type;
-	GameObject *item = gameObjectModel->createGameObject(typeName, index);
-	gameObjectContainer->addGameObject(item);
-
-	applyGameObjectsOrder();
+	gameObjectModel->createGameObject(typeName, index);
 }
 
 GameObject *Editor::copyGameObject() {
@@ -113,10 +113,7 @@ void Editor::pasteGameObject(GameObject *obj) {
 	QModelIndex index = view->selectionModel()->currentIndex();
 	if (!index.isValid()) return;
 
-	GameObject *item = gameObjectModel->appendGameObjectFromJsonObject(obj->getJsonObject(), index);
-	gameObjectContainer->addGameObject(item);
-
-	applyGameObjectsOrder();
+	gameObjectModel->appendGameObjectFromJsonObject(obj->getJsonObject(), index);
 }
 
 void Editor::applyGameObjectsOrder() {
@@ -133,6 +130,11 @@ void Editor::onGameObjectChanged() {
 	else {
 		tabs->setTabText(tabIndex, label + " [*]");
 	}
+}
+
+void Editor::onGameObjectAdded(GameObject *obj) {
+	gameObjectContainer->addGameObject(obj);
+	applyGameObjectsOrder();
 }
 
 void Editor::on_addNode_clicked() {

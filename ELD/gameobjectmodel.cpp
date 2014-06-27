@@ -186,6 +186,7 @@ GameObject *GameObjectModel::appendGameObjectFromJsonObject(const QJsonObject &o
 	GameObject *child = item->appendChild(obj, this);
 	endInsertRows();
 
+	emit gameObjectAdded(child);
 	emit gameObjectChanged();
 
 	return child;

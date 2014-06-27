@@ -41,6 +41,7 @@ class GameObjectModel : public QAbstractItemModel {
 
   signals:
 	void gameObjectChanged();
+	void gameObjectAdded(GameObject *);
 
   private:
 	int itemIdCount;
