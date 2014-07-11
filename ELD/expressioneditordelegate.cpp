@@ -15,18 +15,24 @@ ExpressionEditorDelegate::~ExpressionEditorDelegate() {
 QWidget* ExpressionEditorDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const {
 	ExpressionModel* model = (ExpressionModel*) index.model();
 	Expression *prop = model->getItem(index);
+	QString value = prop->getValue(index.column());
 	QStringList options = prop->getOptions(index.column());
 
-	QCompleter *completer = new QCompleter(parent);
-	completer->setCaseSensitivity(Qt::CaseInsensitive);
-	QComboBox *cb = new QComboBox(parent);
-	cb->setCompleter(completer);
-	cb->setEditable(true);
-	for (int i = 0; i < options.size(); i++) {
-		QString obj = options[i];
-		cb->addItem(obj);
+	if (value.isEmpty() || options.contains(value)) {
+		QCompleter *completer = new QCompleter(parent);
+		completer->setCaseSensitivity(Qt::CaseInsensitive);
+		QComboBox *cb = new QComboBox(parent);
+		cb->setCompleter(completer);
+		cb->setEditable(true);
+		cb->addItem(QString());
+		for (int i = 0; i < options.size(); i++) {
+			QString obj = options[i];
+			cb->addItem(obj);
+		}
+		return cb;
 	}
-	return cb;
+
+	return QStyledItemDelegate::createEditor(parent, option, index);
 }
 
 void ExpressionEditorDelegate::destroyEditor(QWidget * editor, const QModelIndex & index) const {

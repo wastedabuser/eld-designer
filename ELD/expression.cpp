@@ -18,7 +18,7 @@ Expression::~Expression() {
 }
 
 QVariant Expression::data(int column) const {
-	return expression[column].toString();
+	return expression[column].toVariant();
 }
 
 Qt::ItemFlags Expression::flags(int column) const {
@@ -32,6 +32,10 @@ bool Expression::setData(int column, const QVariant &val) {
 
 QJsonArray Expression::getJson() {
 	return expression;
+}
+
+QString Expression::getValue(int column) const {
+	return expression[column].toString();
 }
 
 QStringList Expression::getOptions(int column) {

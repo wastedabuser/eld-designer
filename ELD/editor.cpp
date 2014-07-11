@@ -112,7 +112,7 @@ void Editor::pasteGameObject(GameObject *obj) {
 	QTreeView *view = ui->treeView;
 	QModelIndex index = view->selectionModel()->currentIndex();
 
-	gameObjectModel->appendGameObjectFromJsonObject(obj->getJsonObject(), index);
+	gameObjectModel->createFromJsonObject(obj->getJsonObject(), index);
 }
 
 void Editor::applyGameObjectsOrder() {

@@ -25,11 +25,13 @@ class GameObjectModel : public QAbstractItemModel {
 	QStringList mimeTypes() const;
 	bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
 	QModelIndex getGameObjectIndex(GameObject *obj) const;
+	QJsonObject applyNewIds(const QJsonObject &jobj);
     GameObject *getItem(const QModelIndex &index) const;
 	QString getNextGameObjectId(const QString &typeName);
     QJsonDocument getJson();
 	void setJson(const QJsonDocument &doc);
 	void setJsonObject(const QJsonObject &obj);
+	void createFromJsonObject(const QJsonObject &obj, const QModelIndex &index);
 	bool canCreateObject(const QString &typeName, const QModelIndex &index);
 	GameObject *appendGameObjectFromJsonObject(const QJsonObject &obj, const QModelIndex &index);
 	GameObject *createGameObject(const QString &typeName, const QModelIndex &index);

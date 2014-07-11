@@ -161,11 +161,16 @@ void MainWindow::copyGameObject(GameObject *obj) {
 }
 
 void MainWindow::on_actionOpen_triggered() {
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), "", tr("Files (*.txt;*.json)"));
+	QString lastOpenDir = settingsJson.object()["lastOpenDir"].toString();
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), lastOpenDir, tr("Files (*.txt;*.json)"));
     if (fileName.isEmpty()) return;
 
     QFileInfo info1(fileName);
 	addRecentFile(fileName);
+
+	lastOpenDir = info1.absolutePath();
+	applySetting("lastOpenDir", lastOpenDir);
+
     MainWindow::addEditor(info1.fileName(), fileName);
 }
 

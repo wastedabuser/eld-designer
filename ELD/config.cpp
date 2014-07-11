@@ -89,6 +89,10 @@ QList<QJsonObject> Config::getExpressionsForTypes(QHash<QString, bool> types) {
 	QList<QJsonObject> result;
 	for (int i = 0; i < Config::expressionsRef.size(); i++) {
 		QJsonObject exprObj = Config::expressionsRef[i].toObject();
+		if (!exprObj.contains("who")) {
+			result.append(exprObj);
+			continue;
+		}
 		QJsonArray whoList = exprObj["who"].toArray();
 		for (int j = 0; j < whoList.size(); j++) {
 			if (types.contains(whoList[j].toString())) result.append(exprObj);

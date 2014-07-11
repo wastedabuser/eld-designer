@@ -68,7 +68,9 @@ void PropertyModel::appendPropertyItem(QString &name, QString &value, QJsonObjec
 QJsonObject PropertyModel::getJsonObject() {
 	QJsonObject obj;
 	for (int i = 0; i < properties.size(); i++) {
-		obj[properties[i]->name] = properties[i]->value;
+		Property *pr = properties[i];
+		if (pr->readOnly()) continue;
+		obj[pr->name] = pr->value;
 	}
 	return obj;
 }
@@ -76,9 +78,16 @@ QJsonObject PropertyModel::getJsonObject() {
 void PropertyModel::setJsonObject(const QString &typeName, const QJsonObject &propData) {
 	QList<QJsonObject> propList = Config::getPropertiesForType(typeName);
 	QJsonObject propDefinition = Config::typesDefinitions[typeName];
-	if (propList.isEmpty()) return;
 
-	beginInsertRows(QModelIndex(), 0, propList.size() - 1);
+	beginInsertRows(QModelIndex(), 0, propList.size());
+
+	QJsonObject systemObj;
+	QString systp = "_TYPE_";
+	QString sysvl = typeName;
+	systemObj["type"] = "readonly";
+	systemObj["name"] = systp;
+	appendPropertyItem(systp, sysvl, systemObj);
+
 	for (int i = 0; i < propList.size(); ++i) {
 		QJsonObject propertyObj = propList[i];
 		QString propName = propertyObj["name"].toString();
@@ -89,6 +98,7 @@ void PropertyModel::setJsonObject(const QString &typeName, const QJsonObject &pr
 
 		appendPropertyItem(propName, propVal, propertyObj);
 	}
+
 	endInsertRows();
 }
 

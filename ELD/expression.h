@@ -13,6 +13,7 @@ class Expression {
 	Qt::ItemFlags flags(int column) const;
 	bool setData(int column, const QVariant &val);
 	QJsonArray getJson();
+	QString getValue(int column) const;
 	QStringList getOptions(int column);
 
   private:

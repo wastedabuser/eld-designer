@@ -18,8 +18,8 @@ QVariant Property::data(int column) const {
 }
 
 Qt::ItemFlags Property::flags(int column) const {
-    if (column == 0)
-        return Qt::ItemIsEnabled;
+	if (column == 0 || readOnly())
+		return Qt::ItemIsEnabled;
 
     return Qt::ItemIsEditable;
 }
@@ -32,6 +32,10 @@ bool Property::setData(int column, const QVariant &val) {
 		else return false;
 	}
 	return true;
+}
+
+bool Property::readOnly() const {
+	return name.left(1) == "_" && name.right(1) == "_";
 }
 
 QString Property::getType() {

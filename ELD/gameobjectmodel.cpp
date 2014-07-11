@@ -68,13 +68,19 @@ bool GameObjectModel::setData(const QModelIndex &index, const QVariant &value, i
 		return false;
 
 	GameObject *item = getItem(index);
+	QString newVal = value.toString();
+
+	if (newVal == item->id) return false;
+
 	if (objectsById.contains(value.toString()) && objectsById[value.toString()] != item) {
 		QMessageBox messageBox;
 		messageBox.warning(0, tr("Not allowed"), tr("The specified id of the item already exists!"));
 		return false;
 	}
 
+	objectsById.remove(item->id);
 	item->id = value.toString();
+	objectsById[item->id] = item;
 
 	emit dataChanged(index, index);
 	emit gameObjectChanged();
@@ -141,7 +147,25 @@ QString GameObjectModel::getNextGameObjectId(const QString &typeName) {
 	id.prepend(typeName);
 	id.append(QString::number(idCounter));
 	idCounter++;
+
+	while (objectsById.contains(id)) id += "-2";
+
 	return id;
+}
+
+QJsonObject GameObjectModel::applyNewIds(const QJsonObject &jobj) {
+	QJsonObject nobj = jobj;
+	nobj["id"] = getNextGameObjectId(jobj["type"].toString());
+	if (!jobj.contains("children")) return nobj;
+
+	QJsonArray nchilds;
+	QJsonArray childs = jobj["children"].toArray();
+	for (int i = 0; i < childs.size(); i++) {
+		QJsonObject co = childs[i].toObject();
+		nchilds.append(applyNewIds(co));
+	}
+	nobj["children"] = nchilds;
+	return nobj;
 }
 
 QJsonDocument GameObjectModel::getJson() {
@@ -160,10 +184,14 @@ void GameObjectModel::setJson(const QJsonDocument &doc) {
 }
 
 void GameObjectModel::setJsonObject(const QJsonObject &obj) {
-	idCounter = obj["idCounter"].toInt();
+	if (obj.contains("idCounter")) idCounter = obj["idCounter"].toInt();
 	beginInsertRows(QModelIndex(), 0, 0);
 	rootItem = new GameObject(this, obj);
 	endInsertRows();
+}
+
+void GameObjectModel::createFromJsonObject(const QJsonObject &obj, const QModelIndex &index) {
+	appendGameObjectFromJsonObject(applyNewIds(obj), index);
 }
 
 bool GameObjectModel::canCreateObject(const QString &typeName, const QModelIndex &index) {
@@ -214,6 +242,12 @@ GameObject *GameObjectModel::removeGameObject(const QModelIndex &index) {
 	beginRemoveRows(parent(index), item->childNumber(), item->childNumber());
 	item->parent()->removeChild(index.row());
 	endRemoveRows();
+
+	QList<GameObject *> chlds = item->getChildrenListDeep();
+	chlds.append(item);
+	for (int i = 0; i < chlds.size(); i++) {
+		objectsById.remove(chlds[i]->id);
+	}
 
 	emit gameObjectChanged();
 
