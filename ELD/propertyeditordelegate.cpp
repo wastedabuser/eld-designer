@@ -1,3 +1,4 @@
+#include "config.h"
 #include "expressiondesigner.h"
 #include "propertyeditordelegate.h"
 #include "propertymodel.h"
@@ -59,9 +60,12 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 }
 
 void PropertyEditorDelegate::on_fileBtn_clicked() {
-	QString path = QFileDialog::getOpenFileName(actionBtn, tr("Pick file"), "", "Files (" + propertyMeta + ")");
-	lineEditor->setText(path);
-	emit commitData(editorContainer);
+	QString path = Config::getResourceAbsolutePath(lineEditor->text());
+	path = QFileDialog::getOpenFileName(actionBtn, tr("Pick file"), path, "Files (" + propertyMeta + ")");
+	if (!path.isEmpty()) {
+		lineEditor->setText(Config::getResourceRelativePath(path));
+		emit commitData(editorContainer);
+	}
 }
 
 void PropertyEditorDelegate::on_colorBtn_clicked() {

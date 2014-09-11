@@ -138,12 +138,25 @@ void MainWindow::saveSettings() {
     JsonIO::writeJson(settingsFile, settingsJson);
 }
 
+QString MainWindow::lastOpenDir() {
+	return settingsJson.object()["lastOpenDir"].toString();
+}
+
+void MainWindow::updateEditorIndexes() {
+	 QTabWidget *tabs = ui->tabWidget;
+	for (int i = 0; i < tabs->count(); i++) {
+		Editor *curEditor = (Editor*) tabs->widget(i);
+		curEditor->tabIndex = i;
+	}
+}
+
 void MainWindow::addEditor(const QString &label, const QString &fileName) {
 	QTabWidget *tabs = ui->tabWidget;
 
 	Editor *editor = new Editor(this);
 	if (fileName.isEmpty()) {
 		QJsonObject obj = NewDocumentWizard::getDocumentJsonObject(this);
+		if (obj.isEmpty()) return;
 		editor->createNew(obj);
 	} else
 		editor->load(fileName);
@@ -161,14 +174,13 @@ void MainWindow::copyGameObject(GameObject *obj) {
 }
 
 void MainWindow::on_actionOpen_triggered() {
-	QString lastOpenDir = settingsJson.object()["lastOpenDir"].toString();
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), lastOpenDir, tr("Files (*.txt;*.json)"));
+	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), lastOpenDir(), tr("Files (*.txt;*.json)"));
     if (fileName.isEmpty()) return;
 
     QFileInfo info1(fileName);
 	addRecentFile(fileName);
 
-	lastOpenDir = info1.absolutePath();
+	QString lastOpenDir = info1.absolutePath();
 	applySetting("lastOpenDir", lastOpenDir);
 
     MainWindow::addEditor(info1.fileName(), fileName);
@@ -183,8 +195,7 @@ void MainWindow::on_actionNew_triggered() {
 
 void MainWindow::on_tabWidget_tabCloseRequested(int index) {
     QTabWidget *tabs = ui->tabWidget;
-
-    tabs->removeTab(index);
+	tabs->removeTab(index);
 }
 
 void MainWindow::on_actionSelect_config_file_triggered() {

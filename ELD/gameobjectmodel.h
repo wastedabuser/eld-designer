@@ -23,6 +23,7 @@ class GameObjectModel : public QAbstractItemModel {
     Qt::ItemFlags flags(const QModelIndex &index) const;
 	bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
 	QStringList mimeTypes() const;
+	QMimeData *mimeData(const QModelIndexList &indexes) const;
 	bool dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent);
 	QModelIndex getGameObjectIndex(GameObject *obj) const;
 	QJsonObject applyNewIds(const QJsonObject &jobj);

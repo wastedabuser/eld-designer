@@ -12,7 +12,7 @@ GameObjectContainer::GameObjectContainer(QWidget *parent) :
 	ui(new Ui::GameObjectContainer) {
 	ui->setupUi(this);
 
-	canvasPadding = 100;
+	canvasPadding = 0;
 	scaleFactor = 1;
 }
 

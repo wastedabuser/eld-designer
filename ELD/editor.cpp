@@ -57,13 +57,24 @@ void Editor::load(const QString &fileNm) {
 }
 
 void Editor::save() {
+	QJsonDocument doc = gameObjectModel->getJson();
+	QString newName = doc.object()["id"].toString();
+	if (!newName.isEmpty()) newName = "/" + newName + ".json";
+
 	if (fileName.isEmpty()) {
-		fileName = QFileDialog::getSaveFileName(this, tr("Open File"), "", tr("Files (*.txt;*.json)"));
-		mainWindow->addRecentFile(fileName);
+		fileName = QFileDialog::getSaveFileName(this, tr("Open File"), mainWindow->lastOpenDir() + newName, tr("Files (*.txt;*.json)"));
+		if (!fileName.isEmpty()) {
+			mainWindow->addRecentFile(fileName);
+			QFileInfo info1(fileName);
+			QString lastOpenDir = info1.absolutePath();
+			mainWindow->applySetting("lastOpenDir", lastOpenDir);
+		}
 	}
 
 	if (!fileName.isEmpty()) {
-        JsonIO::writeJson(fileName, gameObjectModel->getJson());
+		JsonIO::writeJson(fileName, doc);
+
+		mainWindow->updateEditorIndexes();
 		QTabWidget *tabs = (QTabWidget*) parentWidget()->parentWidget();
 		QFileInfo info1(fileName);
 		tabs->setTabText(tabIndex, info1.fileName());
@@ -123,6 +134,7 @@ void Editor::applyGameObjectsOrder() {
 void Editor::onGameObjectChanged() {
 	if (!parentWidget()) return;
 
+	mainWindow->updateEditorIndexes();
 	QTabWidget *tabs = (QTabWidget*) parentWidget()->parentWidget();
 	QString label = tabs->tabText(tabIndex);
 	if (label.right(3) == "[*]") return;

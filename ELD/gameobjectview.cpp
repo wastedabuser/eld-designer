@@ -1,3 +1,4 @@
+#include "config.h"
 #include "gameobjectview.h"
 #include "hoverpoints.h"
 #include "propertymodel.h"
@@ -290,7 +291,8 @@ void GameObjectView::onPolylineChangeComplete() {
 
 void GameObjectView::fetchTextureProperty() {
 	if (hasAlpha) alpha = gameObject->getPropertyValue("alpha").toDouble();
-	QString path = gameObject->getPropertyValue("texture");
+	QString path = Config::getResourceAbsolutePath(gameObject->getPropertyValue("texture"));
+
 	if (!path.isEmpty()) {
 		image = QImage(path);
 		if (!image.isNull()) {

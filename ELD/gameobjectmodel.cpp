@@ -94,39 +94,71 @@ Qt::ItemFlags GameObjectModel::flags(const QModelIndex &index) const {
 //	| Qt::ItemIsDragEnabled
 
 	if (index.isValid())
-		return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDropEnabled | defaultFlags;
+		return Qt::ItemIsEditable | Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsDropEnabled | Qt::ItemIsDragEnabled | defaultFlags;
 	else
 		return Qt::ItemIsDropEnabled | defaultFlags;
 }
 
 QStringList GameObjectModel::mimeTypes() const {
 	QStringList types;
-	types << "application/eld-designer.object-type";
+	types << "application/eld-designer.object-type" << "application/eld-designer.node";
 	return types;
+}
+
+QMimeData *GameObjectModel::mimeData(const QModelIndexList &indexes) const {
+	QMimeData *mimeData = new QMimeData();
+	QByteArray encodedData;
+
+	QDataStream stream(&encodedData, QIODevice::WriteOnly);
+
+	foreach (QModelIndex index, indexes) {
+		if (index.isValid()) {
+			QJsonDocument jsonDoc;
+			jsonDoc.setObject(getItem(index)->getJsonObject());
+			stream << jsonDoc.toJson();
+		}
+	}
+
+	mimeData->setData("application/eld-designer.node", encodedData);
+	return mimeData;
 }
 
 bool GameObjectModel::dropMimeData(const QMimeData *data, Qt::DropAction action, int row, int column, const QModelIndex &parent) {
 	if (action == Qt::IgnoreAction)
 		return true;
 
-	if (!data->hasFormat("application/eld-designer.object-type"))
-		return false;
-
-	QByteArray encodedData = data->data("application/eld-designer.object-type");
-	QDataStream stream(&encodedData, QIODevice::ReadOnly);
-	QStringList newItems;
-
-	while (!stream.atEnd()) {
-		QString text;
-		stream >> text;
-		newItems << text;
+	if (data->hasFormat("application/eld-designer.object-type")) {
+		QByteArray encodedData = data->data("application/eld-designer.object-type");
+		QDataStream stream(&encodedData, QIODevice::ReadOnly);
+		QStringList newItems;
+		while (!stream.atEnd()) {
+			QString text;
+			stream >> text;
+			newItems << text;
+		}
+		foreach (QString text, newItems) {
+			createGameObject(text, parent);
+		}
+		return true;
 	}
 
-	foreach (QString text, newItems) {
-		createGameObject(text, parent);
+	if (data->hasFormat("application/eld-designer.node")) {
+		QByteArray encodedData = data->data("application/eld-designer.node");
+		QDataStream stream(&encodedData, QIODevice::ReadOnly);
+		QList<QByteArray> newItems;
+		while (!stream.atEnd()) {
+			QByteArray barr;
+			stream >> barr;
+			newItems << barr;
+		}
+		foreach (QByteArray barr, newItems) {
+			QJsonDocument doc = QJsonDocument::fromJson(barr);
+			createFromJsonObject(doc.object(), parent);
+		}
+		return true;
 	}
 
-	return true;
+	return false;
 }
 
 QModelIndex GameObjectModel::getGameObjectIndex(GameObject *obj) const {

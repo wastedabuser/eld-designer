@@ -9,6 +9,7 @@
 class Config {
 
   public:
+	static QJsonArray resourcePaths;
 	static QJsonArray categoriesRef;
 	static QJsonArray expressionsRef;
 	static QHash<QString, QJsonArray> propertiesByObjectType;
@@ -22,6 +23,8 @@ class Config {
 	static QList<QJsonObject> getPropertiesForType(const QString &typeName);
 	static QHash<QString, bool> getTypesForExpression(const QString &expr);
 	static QList<QJsonObject> getExpressionsForTypes(QHash<QString, bool> types);
+	static QString getResourceAbsolutePath(const QString &path);
+	static QString getResourceRelativePath(const QString &path);
 };
 
 #endif // CONFIG_H

@@ -1,8 +1,10 @@
 #include "config.h"
 
+#include <QFile>
 #include <QJsonArray>
 #include <QJsonObject>
 
+QJsonArray Config::resourcePaths = QJsonArray();
 QJsonArray Config::categoriesRef = QJsonArray();
 QJsonArray Config::expressionsRef = QJsonArray();
 
@@ -23,7 +25,7 @@ void Config::setConfig(const QJsonDocument &configJson) {
 
 
 	QJsonObject configObj = configJson.object();
-
+	Config::resourcePaths = configObj["resourcePaths"].toArray();
 	Config::categoriesRef = configObj["categories"].toArray();
 
 	QJsonArray objectsArray = configObj["objects"].toArray();
@@ -99,4 +101,26 @@ QList<QJsonObject> Config::getExpressionsForTypes(QHash<QString, bool> types) {
 		}
 	}
 	return result;
+}
+
+QString Config::getResourceAbsolutePath(const QString &path) {
+	QString absolutePath;
+	for (int i = 0; i < Config::resourcePaths.size(); i++) {
+		absolutePath = Config::resourcePaths[i].toString() + path;
+		QFile textureFile(absolutePath);
+		if (textureFile.exists()) break;
+	}
+	return absolutePath;
+}
+
+QString Config::getResourceRelativePath(const QString &path) {
+	QString relPath;
+	for (int i = 0; i < Config::resourcePaths.size(); i++) {
+		QString res = Config::resourcePaths[i].toString();
+		if (path.left(res.length()) == res) {
+			relPath = path.right(path.length() - res.length());
+			break;
+		}
+	}
+	return relPath;
 }

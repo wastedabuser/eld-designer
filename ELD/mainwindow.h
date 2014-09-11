@@ -28,6 +28,8 @@ class MainWindow : public QMainWindow {
     void saveSettings();
 	void updateRecentMenu();
 	void copyGameObject(GameObject *obj);
+	QString lastOpenDir();
+	void updateEditorIndexes();
 	ObjectType *getSelectedObjectType();
 
   private slots:
