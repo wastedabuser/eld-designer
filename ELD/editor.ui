@@ -204,6 +204,9 @@
              <property name="dragDropMode">
               <enum>QAbstractItemView::DragDrop</enum>
              </property>
+             <property name="defaultDropAction">
+              <enum>Qt::MoveAction</enum>
+             </property>
              <attribute name="headerVisible">
               <bool>false</bool>
              </attribute>

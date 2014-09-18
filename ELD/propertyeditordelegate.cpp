@@ -70,8 +70,10 @@ void PropertyEditorDelegate::on_fileBtn_clicked() {
 
 void PropertyEditorDelegate::on_colorBtn_clicked() {
 	QColor color = QColorDialog::getColor(QColor(lineEditor->text()),actionBtn);
-	lineEditor->setText(color.name());
-	emit commitData(editorContainer);
+	if (color.isValid()) {
+		lineEditor->setText(color.name());
+		emit commitData(editorContainer);
+	}
 }
 
 void PropertyEditorDelegate::on_expressionBtn_clicked() {
@@ -103,8 +105,10 @@ void PropertyEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *m
 		model->setData(index, lineEditor->text());
 	} else if (QComboBox *cb = qobject_cast<QComboBox *>(editor)) {
 		PropertyModel *pm = (PropertyModel*) model;
+		pm->startPropertyChange();
 		pm->setData(index, cb->currentText(), Qt::EditRole);
 		pm->setPropertyTrigger(cb->currentData().toJsonObject());
+		pm->finishPropertyChange();
 	} else
 		QStyledItemDelegate::setModelData(editor, model, index);
 }

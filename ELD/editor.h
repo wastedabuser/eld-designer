@@ -39,6 +39,7 @@ class Editor : public QWidget {
   private slots:
 	void onGameObjectChanged();
 	void onGameObjectAdded(GameObject *obj);
+	void onGameObjectRemoved(GameObject *obj);
 
 	void on_gameObject_selected(GameObject *obj);
 

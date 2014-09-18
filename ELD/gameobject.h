@@ -17,7 +17,7 @@ class GameObject {
 
     ~GameObject();
 
-    GameObject *child(int number);
+	GameObject *child(int number);
 	QList<GameObject *> getChildrenListDeep();
 	QList<GameObject *> getParentsList();
 	QList<GameObject *> getChildren();

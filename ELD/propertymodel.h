@@ -29,6 +29,8 @@ class PropertyModel : public QAbstractTableModel {
 	bool setPropertyValue(const QString &name, const QString &value);
 	bool hasProperty(const QString &name, const QString &typeName);
 	void setPropertyTrigger(const QJsonObject &triggers);
+	void startPropertyChange();
+	void finishPropertyChange();
 
 	GameObject *gameObject;
 
@@ -37,6 +39,8 @@ class PropertyModel : public QAbstractTableModel {
 
   private:
     QList<Property*> properties;
+	bool changeFlag;
+	bool changesToCommit;
 
 };
 

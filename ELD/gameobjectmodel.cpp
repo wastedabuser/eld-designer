@@ -4,6 +4,7 @@
 #include "config.h"
 #include "gameobject.h"
 #include "gameobjectmodel.h"
+#include "qmimedatawithindex.h"
 #include "util.h"
 
 GameObjectModel::GameObjectModel(QObject *parent) : QAbstractItemModel(parent) {
@@ -105,8 +106,13 @@ QStringList GameObjectModel::mimeTypes() const {
 	return types;
 }
 
+Qt::DropActions GameObjectModel::supportedDropActions() const {
+	Qt::DropActions defaultActions = QAbstractItemModel::supportedDropActions();
+	return defaultActions | Qt::MoveAction;
+}
+
 QMimeData *GameObjectModel::mimeData(const QModelIndexList &indexes) const {
-	QMimeData *mimeData = new QMimeData();
+	QMimeDataWithIndex *mimeData = new QMimeDataWithIndex();
 	QByteArray encodedData;
 
 	QDataStream stream(&encodedData, QIODevice::WriteOnly);
@@ -116,6 +122,7 @@ QMimeData *GameObjectModel::mimeData(const QModelIndexList &indexes) const {
 			QJsonDocument jsonDoc;
 			jsonDoc.setObject(getItem(index)->getJsonObject());
 			stream << jsonDoc.toJson();
+			mimeData->indexList << index;
 		}
 	}
 
@@ -151,9 +158,19 @@ bool GameObjectModel::dropMimeData(const QMimeData *data, Qt::DropAction action,
 			stream >> barr;
 			newItems << barr;
 		}
-		foreach (QByteArray barr, newItems) {
-			QJsonDocument doc = QJsonDocument::fromJson(barr);
-			createFromJsonObject(doc.object(), parent);
+		if(action == Qt::MoveAction) {
+			QMimeDataWithIndex *mimeDataWithIndex = (QMimeDataWithIndex *)data;
+			foreach (QByteArray barr, newItems) {
+				QJsonDocument doc = QJsonDocument::fromJson(barr);
+				QModelIndex ind = mimeDataWithIndex->indexList.takeFirst();
+				if (appendGameObjectFromJsonObject(doc.object(), parent))
+					removeGameObject(ind);
+			}
+		} else {
+			foreach (QByteArray barr, newItems) {
+				QJsonDocument doc = QJsonDocument::fromJson(barr);
+				createFromJsonObject(doc.object(), parent);
+			}
 		}
 		return true;
 	}
@@ -281,6 +298,7 @@ GameObject *GameObjectModel::removeGameObject(const QModelIndex &index) {
 		objectsById.remove(chlds[i]->id);
 	}
 
+	emit gameObjectRemoved(item);
 	emit gameObjectChanged();
 
 	return item;

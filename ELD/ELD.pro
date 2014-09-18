@@ -32,7 +32,8 @@ SOURCES += main.cpp\
     expressionmodel.cpp \
     expression.cpp \
     expressioneditordelegate.cpp \
-    newdocumentwizard.cpp
+    newdocumentwizard.cpp \
+    qmimedatawithindex.cpp
 
 HEADERS  += mainwindow.h \
     editor.h \
@@ -53,7 +54,8 @@ HEADERS  += mainwindow.h \
     expressionmodel.h \
     expression.h \
     expressioneditordelegate.h \
-    newdocumentwizard.h
+    newdocumentwizard.h \
+    qmimedatawithindex.h
 
 FORMS    += mainwindow.ui \
     editor.ui \

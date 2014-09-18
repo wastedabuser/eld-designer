@@ -50,7 +50,8 @@ bool PropertyModel::setData(const QModelIndex &index, const QVariant &value, int
 		if (res) {
 			emit dataChanged(index, index);
 			emit propertyChanged(item->name, item->value);
-			gameObject->gameObjectModel->onPropertyModelChanged(gameObject);
+			changesToCommit = true;
+			if (!changeFlag) finishPropertyChange();
 		}
 		return res;
     }
@@ -117,6 +118,9 @@ bool PropertyModel::setPropertyValue(const QString &name, const QString &value) 
 			if (properties[i]->value != value) {
 				properties[i]->value = value;
 				emit dataChanged(QModelIndex().sibling(i,1), QModelIndex().sibling(i,1));
+				emit propertyChanged(name, value);
+				changesToCommit = true;
+				if (!changeFlag) finishPropertyChange();
 				return true;
 			}
 			return false;
@@ -146,8 +150,20 @@ void PropertyModel::setPropertyTrigger(const QJsonObject &triggers) {
 			QString value = triggers["$" + name].toString();
 			if (setPropertyValue(name, value)) {
 				Util::warn("Changed tied property " + name);
-				emit propertyChanged(name, value);
 			}
 		}
+	}
+}
+
+void PropertyModel::startPropertyChange() {
+	changeFlag = true;
+	changesToCommit = false;
+}
+
+void PropertyModel::finishPropertyChange() {
+	changeFlag = false;
+	if (changesToCommit) {
+		gameObject->gameObjectModel->onPropertyModelChanged(gameObject);
+		changesToCommit = false;
 	}
 }

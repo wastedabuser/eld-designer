@@ -24,8 +24,11 @@ GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj, dou
 	hasRotation = gameObject->hasProperty("rotation");
 	hasBgColor = gameObject->hasProperty("bgColor");
 	hasAlpha = gameObject->hasProperty("alpha");
+	hasParallax = gameObject->hasProperty("parallax");
 	hasPosition = gameObject->hasProperty("x") && gameObject->hasProperty("y");
+	hasSize = gameObject->hasProperty("width") || gameObject->hasProperty("height");
 	alpha = 1;
+	parallax = 1;
 
 	fetchSizeProperties();
 	fetchTextureProperty();
@@ -166,6 +169,7 @@ void GameObjectView::setRotation(qreal r) {
 }
 
 void GameObjectView::setZoomChange(double sf) {
+//	sf *= paralax;
 	zoomFactor *= sf;
 	QTransform trans;
 	trans = trans.scale(sf, sf);
@@ -203,9 +207,11 @@ void GameObjectView::onPropertyModelUpdated(const QString &name, const QString &
 	} else if (name == "width") {
 		width = value.toInt();
 		fetchShapeProperty();
+		fetchTextureProperty();
 	} else if (name == "height") {
 		height = value.toInt();
 		fetchShapeProperty();
+		fetchTextureProperty();
 	} else if (name == "rotation") {
 		setRotation(value.toFloat());
 	} else if (name == "bgColor") {
@@ -230,8 +236,12 @@ void GameObjectView::propagateViewChange() {
 	QString shape = gameObject->getPropertyValue("shape");
 	if (!shape.isEmpty()) {
 		QList<GameObjectView *> meAndChilds;
-		meAndChilds.append(childViews);
-		meAndChilds.append(this);
+		if (controlPolygon.size() == 1 && !polyline) {
+			meAndChilds = childViews;
+		} else {
+			meAndChilds.append(childViews);
+			meAndChilds.append(this);
+		}
 		QRect r = container->getViewsBounds(meAndChilds);
 		if (!hasPosition) {
 			controlPolygon[0].setX(r.x() + r.width() / 2);
@@ -283,6 +293,7 @@ void GameObjectView::fetchShapeProperty() {
 
 void GameObjectView::onPolylineChangeComplete() {
 	gameObject->setPropertyValue("lineCoordinates", polyline->toJsonString());
+	propagateViewChange();
 	for (int i = 0; i < parentViews.size(); i++) {
 		parentViews[i]->propagateViewChange();
 	}
@@ -291,13 +302,20 @@ void GameObjectView::onPolylineChangeComplete() {
 
 void GameObjectView::fetchTextureProperty() {
 	if (hasAlpha) alpha = gameObject->getPropertyValue("alpha").toDouble();
+	if (hasParallax) parallax = gameObject->getPropertyValue("parallax").toDouble();
 	QString path = Config::getResourceAbsolutePath(gameObject->getPropertyValue("texture"));
 
 	if (!path.isEmpty()) {
 		image = QImage(path);
 		if (!image.isNull()) {
-			width = image.width();
-			height = image.height();
+			if (hasSize) {
+				if (!width) gameObject->setPropertyValue("width", QString::number(width = image.width()));
+				if (!height) gameObject->setPropertyValue("height", QString::number(height = image.height()));
+				image = image.scaled(width, height);
+			} else {
+				width = image.width();
+				height = image.height();
+			}
 		}
 		rectangle = QRectF(0, 0, width, height).adjusted(-2, -2, 2, 2);
 	}

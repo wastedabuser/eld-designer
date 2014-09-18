@@ -32,6 +32,7 @@ Editor::Editor(MainWindow *mainW, QWidget *parent) : QWidget(parent),
 
 	connect(gameObjectModel, SIGNAL(gameObjectChanged()), this, SLOT(onGameObjectChanged()));
 	connect(gameObjectModel, SIGNAL(gameObjectAdded(GameObject *)), this, SLOT(onGameObjectAdded(GameObject *)));
+	connect(gameObjectModel, SIGNAL(gameObjectRemoved(GameObject *)), this, SLOT(onGameObjectRemoved(GameObject *)));
 }
 
 Editor::~Editor() {
@@ -111,12 +112,7 @@ GameObject *Editor::cutGameObject() {
 	QModelIndex index = view->selectionModel()->currentIndex();
 	if (!index.isValid()) return 0;
 
-	GameObject *item = gameObjectModel->removeGameObject(index);
-	gameObjectContainer->removeGameObject(item);
-
-	applyGameObjectsOrder();
-
-	return item;
+	return gameObjectModel->removeGameObject(index);
 }
 
 void Editor::pasteGameObject(GameObject *obj) {
@@ -148,6 +144,11 @@ void Editor::onGameObjectAdded(GameObject *obj) {
 	applyGameObjectsOrder();
 }
 
+void Editor::onGameObjectRemoved(GameObject *obj) {
+	gameObjectContainer->removeGameObject(obj);
+	applyGameObjectsOrder();
+}
+
 void Editor::on_addNode_clicked() {
     QTreeView *view = ui->treeView;
     QModelIndex index = view->selectionModel()->currentIndex();
@@ -167,7 +168,6 @@ void Editor::on_removeNode_clicked() {
 	if (!index.isValid()) return;
 
 	GameObject *item = gameObjectModel->removeGameObject(index);
-	gameObjectContainer->removeGameObject(item);
 
 	view->selectionModel()->clearCurrentIndex();
 	view->clearSelection();
