@@ -23,13 +23,14 @@ class GameObjectView : public QObject {
 	void setRotation(qreal r);
 	void setZoomChange(double sf);
 	void propagateViewChange();
-	void commitPositionProperties();
+	void commitPositionProperties(bool deep);
 	void fetchSizeProperties();
 	void fetchRotationProperty();
 	void fetchPositionProperties();
 	void fetchShapeProperty();
 	void fetchTextureProperty();
 	void cacheRelatedViews();
+	void fetchViewShape();
 
 	bool selected;
 	GameObject *gameObject;

@@ -18,8 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     editorCnt = 1;
 
 	QTabWidget *tabs = ui->tabWidget;
-	tabs->removeTab(0);
-	tabs->removeTab(0);
+	tabs->clear();
 
     settingsFile = "settings.json";
     readSettings();
@@ -143,7 +142,7 @@ QString MainWindow::lastOpenDir() {
 }
 
 void MainWindow::updateEditorIndexes() {
-	 QTabWidget *tabs = ui->tabWidget;
+	QTabWidget *tabs = ui->tabWidget;
 	for (int i = 0; i < tabs->count(); i++) {
 		Editor *curEditor = (Editor*) tabs->widget(i);
 		curEditor->tabIndex = i;
@@ -174,16 +173,18 @@ void MainWindow::copyGameObject(GameObject *obj) {
 }
 
 void MainWindow::on_actionOpen_triggered() {
-	QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"), lastOpenDir(), tr("Files (*.txt;*.json)"));
-    if (fileName.isEmpty()) return;
+	QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Open File"), lastOpenDir(), tr("Files (*.txt;*.json)"));
 
-    QFileInfo info1(fileName);
-	addRecentFile(fileName);
+	for (int i = 0; i < fileNames.size(); i++) {
+		QString fileName = fileNames[i];
+		QFileInfo info1(fileName);
+		addRecentFile(fileName);
 
-	QString lastOpenDir = info1.absolutePath();
-	applySetting("lastOpenDir", lastOpenDir);
+		QString lastOpenDir = info1.absolutePath();
+		applySetting("lastOpenDir", lastOpenDir);
 
-    MainWindow::addEditor(info1.fileName(), fileName);
+		MainWindow::addEditor(info1.fileName(), fileName);
+	}
 }
 
 void MainWindow::on_actionNew_triggered() {
@@ -270,4 +271,22 @@ void MainWindow::on_recentFileOpenAction_triggered() {
 
 void MainWindow::on_actionReload_config_file_triggered() {
 	loadConfig();
+}
+
+void MainWindow::on_actionClose_triggered() {
+	QTabWidget *tabs = ui->tabWidget;
+	tabs->removeTab(tabs->currentIndex());
+}
+
+void MainWindow::on_actionSave_All_triggered() {
+	QTabWidget *tabs = ui->tabWidget;
+	for (int i = 0; i < tabs->count(); i++) {
+		Editor *curEditor = (Editor*) tabs->widget(i);
+		curEditor->save();
+	}
+}
+
+void MainWindow::on_actionClose_All_triggered() {
+	QTabWidget *tabs = ui->tabWidget;
+	tabs->clear();
 }

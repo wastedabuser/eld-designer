@@ -127,7 +127,7 @@ QString GameObject::getPropertyValue(const QString &name) {
 
 void GameObject::setPropertyValue(const QString &name, const QString &value) {
 	if (!propertyModel) return;
-	if (propertyModel->setPropertyValue(name, value)) gameObjectModel->onPropertyModelChanged(this);
+	if (propertyModel->setPropertyValue(name, value, true)) gameObjectModel->onPropertyModelChanged(this);
 }
 
 bool GameObject::hasProperty(const QString &name) {

@@ -37,6 +37,7 @@ class Editor : public QWidget {
 	QString fileName;
 
   private slots:
+	void onEditorReady();
 	void onGameObjectChanged();
 	void onGameObjectAdded(GameObject *obj);
 	void onGameObjectRemoved(GameObject *obj);

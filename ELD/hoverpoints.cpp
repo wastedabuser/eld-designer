@@ -202,12 +202,12 @@ void HoverPoints::moveDelta(int dx, int dy) {
 	movePolygonDelta(QPoint(dx, dy));
 }
 
-QString HoverPoints::toJsonString() {
+QString HoverPoints::toJsonString(int ox, int oy) {
 	QJsonArray list;
 	for (int i=0; i < m_points.size(); ++i) {
 		QJsonArray p;
-		p.append((int)(m_points[i].x() / zoomFactor));
-		p.append((int)(m_points[i].y() / zoomFactor));
+		p.append((int)((m_points[i].x() - ox) / zoomFactor));
+		p.append((int)((m_points[i].y() - oy) / zoomFactor));
 		list.append(p);
 	}
 	QJsonDocument doc;
@@ -215,7 +215,7 @@ QString HoverPoints::toJsonString() {
 	return QString(doc.toJson(QJsonDocument::Compact));
 }
 
-void HoverPoints::fromJsonString(const QString &json) {
+void HoverPoints::fromJsonString(const QString &json, int ox, int oy) {
 	if (json.isEmpty()) return;
 
 	QJsonDocument doc = QJsonDocument::fromJson(json.toUtf8());
@@ -223,7 +223,7 @@ void HoverPoints::fromJsonString(const QString &json) {
 	m_points.clear();
 	for (int i=0; i<points.size(); ++i) {
 		QJsonArray pt = points.at(i).toArray();
-		m_points << QPointF(pt[0].toInt() * zoomFactor, pt[1].toInt() * zoomFactor);
+		m_points << QPointF(ox + pt[0].toInt() * zoomFactor, oy + pt[1].toInt() * zoomFactor);
 	}
 
 	m_locks.clear();

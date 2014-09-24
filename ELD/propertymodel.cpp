@@ -112,13 +112,13 @@ QString PropertyModel::getPropertyValue(const QString &name, const QString &type
 	return QString();
 }
 
-bool PropertyModel::setPropertyValue(const QString &name, const QString &value) {
+bool PropertyModel::setPropertyValue(const QString &name, const QString &value, bool silent) {
 	for (int i = 0; i < properties.size(); ++i) {
 		if (properties[i]->name == name) {
 			if (properties[i]->value != value) {
 				properties[i]->value = value;
 				emit dataChanged(QModelIndex().sibling(i,1), QModelIndex().sibling(i,1));
-				emit propertyChanged(name, value);
+				if (!silent) emit propertyChanged(name, value);
 				changesToCommit = true;
 				if (!changeFlag) finishPropertyChange();
 				return true;

@@ -12,18 +12,13 @@ GameObjectContainer::GameObjectContainer(QWidget *parent) :
 	ui(new Ui::GameObjectContainer) {
 	ui->setupUi(this);
 
-	canvasPadding = 0;
+	padding = 5000;
+	canvasPadding = padding;
 	scaleFactor = 1;
 }
 
 GameObjectContainer::~GameObjectContainer() {
 	delete ui;
-}
-
-void GameObjectContainer::mouseMoveEvent(QMouseEvent *event) {
-	QScrollArea *scrollArea = (QScrollArea *) parent()->parent();
-	rx = (double)event->x() / (double)scrollArea->width();
-	ry = (double)event->y() / (double)scrollArea->height();
 }
 
 void GameObjectContainer::paintEvent(QPaintEvent *) {
@@ -49,7 +44,15 @@ void GameObjectContainer::wheelEvent(QWheelEvent *event) {
 	zoom(event->delta() > 0, true);
 }
 
+void GameObjectContainer::centerView() {
+	QScrollArea *scrollArea = (QScrollArea *) parent()->parent();
+	scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->maximum() / 2);
+	scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->maximum() / 2);
+}
+
 void GameObjectContainer::zoom(bool out, bool wheel) {
+	if (views.empty()) return;
+
 	double sf;
 	if (out) {
 		sf = zoomStep;
@@ -63,13 +66,21 @@ void GameObjectContainer::zoom(bool out, bool wheel) {
 
 	scaleFactor *= sf;
 	canvasPadding *= sf;
+
 	alignContainerCanvas();
+	update();
 
 	QScrollArea *scrollArea = (QScrollArea *) parent()->parent();
-	scrollArea->horizontalScrollBar()->setValue(scrollArea->horizontalScrollBar()->value() + dmw * (wheel ? rx : .5));
-	scrollArea->verticalScrollBar()->setValue(scrollArea->verticalScrollBar()->value() + dmh * (wheel ? ry : .5));
-
-	update();
+	QPoint pt;
+	if (wheel) {
+		pt = mapFromGlobal(QCursor::pos());
+	} else {
+		pt = mapFromParent(QPoint(scrollArea->width() / 2, scrollArea->height() / 2));
+	}
+	double pivotX = (double)pt.x() * sf;
+	double pivotY = (double)pt.y() * sf;
+	scrollArea->horizontalScrollBar()->setValue((double)scrollArea->horizontalScrollBar()->value() + pivotX - pt.x());
+	scrollArea->verticalScrollBar()->setValue((double)scrollArea->verticalScrollBar()->value() + pivotY - pt.y());
 }
 
 void GameObjectContainer::addGameObject(GameObject *obj, bool doUpdate) {
@@ -181,7 +192,6 @@ QRect GameObjectContainer::getViewsBounds(QList<GameObjectView *> &list) {
 }
 
 void GameObjectContainer::handleViewChange(GameObjectView *view) {
-	view->commitPositionProperties();
 	selectView(view);
 	updateCanvas();
 }
@@ -204,7 +214,7 @@ void GameObjectContainer::alignContainerCanvas() {
 	if (minx < 0 || miny < 0) {
 		for (int i = 0; i < views.size(); i++) {
 			views[i]->setDelta(minx < 0 ? -minx : 0, miny < 0 ? -miny : 0);
-			views[i]->commitPositionProperties();
+			views[i]->commitPositionProperties(false);
 		}
 	}
 }

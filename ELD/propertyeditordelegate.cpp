@@ -28,6 +28,7 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 	if (propertyType == "combo") {
 		QComboBox *cb = new QComboBox(parent);
 		QJsonArray options = prop->getOptions();
+		cb->addItem("", QVariant(QJsonObject()));
 		for (int i = 0; i < options.size(); i++) {
 			QJsonObject obj = options[i].toObject();
 			cb->addItem(obj["type"].toString(), QVariant(obj));

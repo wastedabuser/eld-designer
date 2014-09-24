@@ -65,3 +65,5 @@ FORMS    += mainwindow.ui \
 
 RESOURCES += \
     icons.qrc
+
+OTHER_FILES +=

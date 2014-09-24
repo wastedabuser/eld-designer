@@ -13,6 +13,7 @@
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QFileDialog>
+#include <QScrollBar>
 
 Editor::Editor(MainWindow *mainW, QWidget *parent) : QWidget(parent),
 	ui(new Ui::Editor) {
@@ -55,6 +56,12 @@ void Editor::load(const QString &fileNm) {
 	gameObjectModel->setJson(doc);
 	gameObjectContainer->addGameObject(gameObjectModel->rootItem, false);
 	gameObjectContainer->updateCanvas();
+
+	QTimer::singleShot(0, this, SLOT(onEditorReady()));
+}
+
+void Editor::onEditorReady() {
+	gameObjectContainer->centerView();
 }
 
 void Editor::save() {

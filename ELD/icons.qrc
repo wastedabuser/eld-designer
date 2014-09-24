@@ -16,5 +16,7 @@
         <file>icons/table_lightning.png</file>
         <file>icons/cut.png</file>
         <file>icons/table_edit.png</file>
+        <file>icons/disk_multiple.png</file>
+        <file>icons/page_white_delete.png</file>
     </qresource>
 </RCC>

@@ -59,7 +59,13 @@ class MainWindow : public QMainWindow {
 
 	void on_actionReload_config_file_triggered();
 
-  private:
+	void on_actionClose_triggered();
+
+	void on_actionSave_All_triggered();
+
+	void on_actionClose_All_triggered();
+
+	private:
 	Ui::MainWindow *ui;
     QString settingsFile;
     QJsonDocument settingsJson;

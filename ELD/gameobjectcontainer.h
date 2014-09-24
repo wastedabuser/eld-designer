@@ -19,7 +19,7 @@ class GameObjectContainer : public QWidget {
 
 	void paintEvent(QPaintEvent *);
 	void wheelEvent(QWheelEvent *);
-	void mouseMoveEvent(QMouseEvent *);
+	void centerView();
 	void addGameObject(GameObject *obj, bool doUpdate = true);
 	void removeGameObject(GameObject *obj);
 	void applyGameObjectsOrder(QList<GameObject *> &list);
@@ -29,6 +29,9 @@ class GameObjectContainer : public QWidget {
 	void zoom(bool out, bool wheel = false);
 	QList<GameObjectView *> getViewsForObejcts(QList<GameObject *> &list);
 	QRect getViewsBounds(QList<GameObjectView *> &list);
+
+	double padding;
+	double canvasPadding;
 
   public slots:
 	void handleViewChange(GameObjectView *view = 0);
@@ -40,7 +43,6 @@ class GameObjectContainer : public QWidget {
 	Ui::GameObjectContainer *ui;
 	QList<GameObjectView *> views;
 	QHash<GameObject *, GameObjectView *> hViews;
-	double canvasPadding;
 	double scaleFactor;
 	double dmw;
 	double dmh;
