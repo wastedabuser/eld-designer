@@ -2,6 +2,7 @@
 #include "gameobjectview.h"
 #include "hoverpoints.h"
 #include "propertymodel.h"
+#include "textureatlas.h"
 
 #include <QLayout>
 #include <QPainter>
@@ -312,10 +313,13 @@ void GameObjectView::onPolylineChangeComplete() {
 void GameObjectView::fetchTextureProperty() {
 	if (hasAlpha) alpha = gameObject->getPropertyValue("alpha").toDouble();
 	if (hasParallax) parallax = gameObject->getPropertyValue("parallax").toDouble();
-	QString path = Config::getResourceAbsolutePath(gameObject->getPropertyValue("texture"));
-
-	if (!path.isEmpty()) {
-		image = QImage(path);
+	QString texturePath = gameObject->getPropertyValue("texture");
+	if (!texturePath.isEmpty()) {
+		QStringList pathParts = texturePath.split(";");
+		QString path = Config::getResourceAbsolutePath(pathParts[0]);
+		TextureAtlas *atlas = new TextureAtlas(path);
+		image = atlas->getTexture(pathParts[1]);
+		delete atlas;
 		if (!image.isNull()) {
 			if (hasSize) {
 				if (!width) gameObject->setPropertyValue("width", QString::number(width = image.width()));

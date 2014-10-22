@@ -2,6 +2,7 @@
 #include "propertymodel.h"
 #include "gameobjectmodel.h"
 #include "util.h"
+#include "jsonio.h"
 
 #include <QtGui>
 #include <QJsonObject>
@@ -64,6 +65,13 @@ Property *PropertyModel::getItem(const QModelIndex &index) const {
 
 void PropertyModel::appendPropertyItem(QString &name, QString &value, QJsonObject &options) {
     properties.append(new Property(name, value, options));
+}
+
+void PropertyModel::updateFilesMap(QHash<QString, bool> &uniqueFiles) {
+	for (int i = 0; i < properties.size(); i++) {
+		Property *pr = properties[i];
+		if (pr->getType() == "file") uniqueFiles[pr->value] = true;
+	}
 }
 
 QJsonObject PropertyModel::getJsonObject() {
@@ -138,7 +146,7 @@ bool PropertyModel::hasProperty(const QString &name, const QString &typeName) {
 	return false;
 }
 
-void PropertyModel::setPropertyTrigger(const QJsonObject &triggers) {
+void PropertyModel::setPropertyTrigger(const QString &propertyName, const QString &propertyValue, const QJsonObject &triggers) {
 	QString name;
 	QStringList tied = triggers.keys();
 	for (int i = 0; i < tied.size(); i++) {
@@ -147,9 +155,22 @@ void PropertyModel::setPropertyTrigger(const QJsonObject &triggers) {
 			name = k.right(k.length() - 1);
 			if (name.isEmpty()) continue;
 
-			QString value = triggers["$" + name].toString();
-			if (setPropertyValue(name, value)) {
-				Util::warn("Changed tied property " + name);
+			if (propertyName == "reference" && triggers[k].isArray()) {
+				QJsonDocument doc = JsonIO::readJson(Config::getResourceAbsolutePath(propertyValue));
+				QJsonArray arr = triggers[k].toArray();
+				QString value;
+				for (int a = 0; a < arr.size(); a++) {
+					value = JsonIO::findNode(doc, arr[a].toString()).toString();
+					if (!value.isEmpty()) break;
+				}
+				if (setPropertyValue(name, value)) {
+					Util::warn("Changed tied property " + name);
+				}
+			} else {
+				QString value = triggers[k].toString();
+				if (setPropertyValue(name, value)) {
+					Util::warn("Changed tied property " + name);
+				}
 			}
 		}
 	}

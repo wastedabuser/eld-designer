@@ -163,8 +163,10 @@ bool GameObjectModel::dropMimeData(const QMimeData *data, Qt::DropAction action,
 			foreach (QByteArray barr, newItems) {
 				QJsonDocument doc = QJsonDocument::fromJson(barr);
 				QModelIndex ind = mimeDataWithIndex->indexList.takeFirst();
-				if (appendGameObjectFromJsonObject(doc.object(), parent))
-					removeGameObject(ind);
+				if (getItem(ind)->parent() == getItem(parent)) continue;
+				if (appendGameObjectFromJsonObject(doc.object(), parent)) {
+					removeGameObject(ind, false);
+				}
 			}
 		} else {
 			foreach (QByteArray barr, newItems) {
@@ -217,12 +219,43 @@ QJsonObject GameObjectModel::applyNewIds(const QJsonObject &jobj) {
 	return nobj;
 }
 
+QJsonObject GameObjectModel::applyNewIdsIfExist(const QJsonObject &jobj) {
+	QJsonObject nobj = jobj;
+	QString curId = nobj["id"].toString();
+	if (!curId.isEmpty() && objectsById.contains(curId)) {
+		nobj["id"] = getNextGameObjectId(jobj["type"].toString());
+	}
+	if (!jobj.contains("children")) return nobj;
+
+	QJsonArray nchilds;
+	QJsonArray childs = jobj["children"].toArray();
+	for (int i = 0; i < childs.size(); i++) {
+		QJsonObject co = childs[i].toObject();
+		nchilds.append(applyNewIdsIfExist(co));
+	}
+	nobj["children"] = nchilds;
+	return nobj;
+}
+
 QJsonDocument GameObjectModel::getJson() {
 	QJsonObject obj = rootItem->getJsonObject();
 	obj["idCounter"] = idCounter;
+	QJsonArray files = getFilesList();
+	if (!files.isEmpty()) obj["files"] = files;
 	QJsonDocument doc;
 	doc.setObject(obj);
 	return doc;
+}
+
+QJsonArray GameObjectModel::getFilesList() {
+	QHash<QString, bool> uniqueFiles;
+	rootItem->updateFilesMap(uniqueFiles);
+	QStringList keys = uniqueFiles.keys();
+	QJsonArray arr;
+	for (int i = 0; i < keys.size(); i++) {
+		if (!keys[i].isEmpty()) arr.append(keys[i]);
+	}
+	return arr;
 }
 
 void GameObjectModel::setJson(const QJsonDocument &doc) {
@@ -240,7 +273,7 @@ void GameObjectModel::setJsonObject(const QJsonObject &obj) {
 }
 
 void GameObjectModel::createFromJsonObject(const QJsonObject &obj, const QModelIndex &index) {
-	appendGameObjectFromJsonObject(applyNewIds(obj), index);
+	appendGameObjectFromJsonObject(applyNewIdsIfExist(obj), index);
 }
 
 bool GameObjectModel::canCreateObject(const QString &typeName, const QModelIndex &index) {
@@ -285,17 +318,19 @@ GameObject *GameObjectModel::createGameObject(const QString &typeName, const QMo
 	return appendGameObjectFromJsonObject(obj, index);
 }
 
-GameObject *GameObjectModel::removeGameObject(const QModelIndex &index) {
+GameObject *GameObjectModel::removeGameObject(const QModelIndex &index, bool removeIdIndex) {
 	GameObject *item = getItem(index);
 
 	beginRemoveRows(parent(index), item->childNumber(), item->childNumber());
 	item->parent()->removeChild(index.row());
 	endRemoveRows();
 
-	QList<GameObject *> chlds = item->getChildrenListDeep();
-	chlds.append(item);
-	for (int i = 0; i < chlds.size(); i++) {
-		objectsById.remove(chlds[i]->id);
+	if (removeIdIndex) {
+		QList<GameObject *> chlds = item->getChildrenListDeep();
+		chlds.append(item);
+		for (int i = 0; i < chlds.size(); i++) {
+			objectsById.remove(chlds[i]->id);
+		}
 	}
 
 	emit gameObjectRemoved(item);

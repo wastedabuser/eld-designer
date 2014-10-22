@@ -100,6 +100,13 @@ QJsonObject GameObject::getJsonObject() {
 	return obj;
 }
 
+void GameObject::updateFilesMap(QHash<QString, bool> &uniqueFiles) {
+	propertyModel->updateFilesMap(uniqueFiles);
+	for (int i = 0; i < childItems.size(); i++) {
+		childItems[i]->updateFilesMap(uniqueFiles);
+	}
+}
+
 void GameObject::createChildrenFromJsonArray(const QJsonArray &list) {
 	for (int i = 0; i < list.size(); i++) {
 		appendChild(list[i].toObject(), gameObjectModel);

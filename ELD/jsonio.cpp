@@ -3,6 +3,8 @@
 
 #include <QFile>
 #include <QJsonDocument>
+#include <QStringList>
+#include <QJsonArray>
 
 QJsonDocument JsonIO::readJson(const QString& fileName) {
     QString val;
@@ -38,4 +40,45 @@ void JsonIO::writeJson(const QString& fileName, const QJsonDocument& jsonDoc) {
     file.write(jsonDoc.toJson());
 
     file.close();
+}
+
+QJsonValue JsonIO::findNode(const QJsonDocument &doc, const QString &str) {
+	QStringList list = str.split(".");
+	QJsonObject o;
+	QJsonArray a;
+	QJsonValue vl;
+	bool tp;
+	if (doc.isArray()) {
+		a = doc.array();
+		tp = false;
+	} else {
+		o = doc.object();
+		tp = true;
+	}
+	for (int i = 0; i < list.size(); i++) {
+		QString ch = list[i];
+		int chi = ch.toInt();
+		if (tp) {
+			if (o[ch].isObject()) {
+				o = o[ch].toObject();
+				tp = true;
+			} else if (o[ch].isArray()) {
+				a = o[ch].toArray();
+				tp = false;
+			} else {
+				vl = o[ch];
+			}
+		} else {
+			if (a[chi].isObject()) {
+				o = a[chi].toObject();
+				tp = true;
+			} else if (a[chi].isArray()) {
+				a = a[chi].toArray();
+				tp = false;
+			} else {
+				vl = a[chi];
+			}
+		}
+	}
+	return vl;
 }

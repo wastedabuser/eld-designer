@@ -33,6 +33,7 @@ class GameObject {
 	void addChild(int index, GameObject *obj);
 	QJsonArray getChildJsonArray();
 	QJsonObject getJsonObject();
+	void updateFilesMap(QHash<QString, bool> &uniqueFiles);
 	void createChildrenFromJsonArray(const QJsonArray &list);
 	void createPropertiesFromJsonObject(const QJsonObject &obj);
 	QString getPropertyValue(const QString &name);

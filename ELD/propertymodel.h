@@ -23,12 +23,13 @@ class PropertyModel : public QAbstractTableModel {
     Property *getItem(const QModelIndex &index) const;
     void createPropertyItems(const QList<QJsonObject> &propList, const QJsonObject &propData);
 	void appendPropertyItem(QString &name, QString &value, QJsonObject &options);
+	void updateFilesMap(QHash<QString, bool> &uniqueFiles);
 	QJsonObject getJsonObject();
 	void setJsonObject(const QString &typeName, const QJsonObject &propData);
 	QString getPropertyValue(const QString &name, const QString &typeName);
 	bool setPropertyValue(const QString &name, const QString &value, bool silent = false);
 	bool hasProperty(const QString &name, const QString &typeName);
-	void setPropertyTrigger(const QJsonObject &triggers);
+	void setPropertyTrigger(const QString &propertyName, const QString &propertyValue, const QJsonObject &triggers);
 	void startPropertyChange();
 	void finishPropertyChange();
 

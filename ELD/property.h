@@ -19,9 +19,8 @@ class Property {
 
 	QString name;
 	QString value;
+	QJsonObject options;
 
-  private:
-    QJsonObject options;
 };
 
 #endif // PROPERTY_H

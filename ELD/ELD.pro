@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     expression.cpp \
     expressioneditordelegate.cpp \
     newdocumentwizard.cpp \
-    qmimedatawithindex.cpp
+    qmimedatawithindex.cpp \
+    textureatlas.cpp
 
 HEADERS  += mainwindow.h \
     editor.h \
@@ -55,7 +56,8 @@ HEADERS  += mainwindow.h \
     expression.h \
     expressioneditordelegate.h \
     newdocumentwizard.h \
-    qmimedatawithindex.h
+    qmimedatawithindex.h \
+    textureatlas.h
 
 FORMS    += mainwindow.ui \
     editor.ui \

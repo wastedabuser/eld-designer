@@ -102,13 +102,17 @@ void PropertyEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &i
 }
 
 void PropertyEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const {
+	PropertyModel *pm = (PropertyModel*) model;
+	Property *prop = propertyModel->getItem(index);
 	if (propertyType == "file" || propertyType == "color" || propertyType == "expression") {
+		pm->startPropertyChange();
 		model->setData(index, lineEditor->text());
+		pm->setPropertyTrigger(prop->name, lineEditor->text(), prop->options);
+		pm->finishPropertyChange();
 	} else if (QComboBox *cb = qobject_cast<QComboBox *>(editor)) {
-		PropertyModel *pm = (PropertyModel*) model;
 		pm->startPropertyChange();
 		pm->setData(index, cb->currentText(), Qt::EditRole);
-		pm->setPropertyTrigger(cb->currentData().toJsonObject());
+		pm->setPropertyTrigger(prop->name, cb->currentText(), cb->currentData().toJsonObject());
 		pm->finishPropertyChange();
 	} else
 		QStyledItemDelegate::setModelData(editor, model, index);
