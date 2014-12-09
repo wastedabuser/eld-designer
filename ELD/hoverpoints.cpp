@@ -182,7 +182,7 @@ void HoverPoints::setZoomChange(double sf) {
 	trans = trans.scale(sf, sf);
 	m_points = trans.map(m_points);
 	zoomFactor *= sf;
-	firePointChange();
+	if (m_points.size() > 0) firePointChange();
 }
 
 void HoverPoints::movePoint(int index, const QPointF &point, bool emitUpdate) {
@@ -195,7 +195,7 @@ void HoverPoints::movePolygonDelta(QPointF dp) {
 	for (int i=0; i < m_points.size(); ++i) {
 		m_points[i] += dp;
 	}
-	firePointChange();
+	if (m_points.size() > 0) firePointChange();
 }
 
 void HoverPoints::moveDelta(int dx, int dy) {

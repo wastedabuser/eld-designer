@@ -66,9 +66,7 @@ class GameObjectView : public QObject {
 	bool hasBgColor;
 	QColor bgColor;
 	bool hasAlpha;
-	bool hasParallax;
 	double alpha;
-	double parallax;
 	bool hasSize;
 
 };

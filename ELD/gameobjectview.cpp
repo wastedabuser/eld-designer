@@ -25,11 +25,9 @@ GameObjectView::GameObjectView(GameObjectContainer *widget, GameObject *obj, dou
 	hasRotation = gameObject->hasProperty("rotation");
 	hasBgColor = gameObject->hasProperty("bgColor");
 	hasAlpha = gameObject->hasProperty("alpha");
-	hasParallax = gameObject->hasProperty("parallax");
 	hasPosition = gameObject->hasProperty("x") && gameObject->hasProperty("y");
 	hasSize = gameObject->hasProperty("width") || gameObject->hasProperty("height");
 	alpha = 1;
-	parallax = 1;
 
 	fetchSizeProperties();
 	fetchTextureProperty();
@@ -167,7 +165,6 @@ void GameObjectView::setRotation(qreal r) {
 }
 
 void GameObjectView::setZoomChange(double sf) {
-//	sf *= paralax;
 	zoomFactor *= sf;
 	QTransform trans;
 	trans = trans.scale(sf, sf);
@@ -233,8 +230,13 @@ void GameObjectView::fetchViewShape() {
 }
 
 QRect GameObjectView::bouds() {
-	if (polyline) return polyline->getBounds();
-	return hoverPoints->getBounds();
+	QRect rect;
+	if (polyline) rect = polyline->getBounds();
+	else rect = hoverPoints->getBounds();
+	if (rect.x() == 1000000) {
+		rect = QRect(container->canvasPadding,container->canvasPadding,0,0);
+	}
+	return rect;
 }
 
 void GameObjectView::propagateViewChange() {
@@ -312,13 +314,12 @@ void GameObjectView::onPolylineChangeComplete() {
 
 void GameObjectView::fetchTextureProperty() {
 	if (hasAlpha) alpha = gameObject->getPropertyValue("alpha").toDouble();
-	if (hasParallax) parallax = gameObject->getPropertyValue("parallax").toDouble();
 	QString texturePath = gameObject->getPropertyValue("texture");
 	if (!texturePath.isEmpty()) {
 		QStringList pathParts = texturePath.split(";");
 		QString path = Config::getResourceAbsolutePath(pathParts[0]);
 		TextureAtlas *atlas = new TextureAtlas(path);
-		image = atlas->getTexture(pathParts[1]);
+		image = atlas->getTexture(pathParts.length() > 1 ? pathParts[1] : "");
 		delete atlas;
 		if (!image.isNull()) {
 			if (hasSize) {
