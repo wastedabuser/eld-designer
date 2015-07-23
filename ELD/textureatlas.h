@@ -11,6 +11,8 @@ class TextureAtlas {
 
 	void parseAtlas(QString path);
 	QImage getTexture(QString name);
+    QStringList getTextureNames();
+    bool empty();
 
   protected:
 	QImage texture;

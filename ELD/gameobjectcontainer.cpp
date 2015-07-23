@@ -12,13 +12,13 @@ GameObjectContainer::GameObjectContainer(QWidget *parent) :
 	ui(new Ui::GameObjectContainer) {
 	ui->setupUi(this);
 
-	padding = 5000;
-	canvasPadding = padding;
-	scaleFactor = 1;
+    padding = 5000;
+    canvasPadding = padding;
+    scaleFactor = 1;
 }
 
 GameObjectContainer::~GameObjectContainer() {
-	delete ui;
+    delete ui;
 }
 
 void GameObjectContainer::paintEvent(QPaintEvent *) {
@@ -60,15 +60,7 @@ void GameObjectContainer::zoom(bool out, bool wheel) {
 		sf = 1 / zoomStep;
 	}
 
-	for (int i = 0; i < views.size(); i++) {
-		views[i]->setZoomChange(sf);
-	}
-
-	scaleFactor *= sf;
-	canvasPadding *= sf;
-
-	alignContainerCanvas();
-	update();
+    setScaleFactor(sf);
 
 	QScrollArea *scrollArea = (QScrollArea *) parent()->parent();
 	QPoint pt;
@@ -81,6 +73,21 @@ void GameObjectContainer::zoom(bool out, bool wheel) {
 	double pivotY = (double)pt.y() * sf;
 	scrollArea->horizontalScrollBar()->setValue((double)scrollArea->horizontalScrollBar()->value() + pivotX - pt.x());
 	scrollArea->verticalScrollBar()->setValue((double)scrollArea->verticalScrollBar()->value() + pivotY - pt.y());
+}
+
+void GameObjectContainer::setScaleFactor(double sf) {
+    for (int i = 0; i < views.size(); i++) {
+        views[i]->setZoomChange(sf);
+    }
+
+    scaleFactor *= sf;
+    canvasPadding *= sf;
+
+    updateCanvas();
+}
+
+double GameObjectContainer::getScaleFactor() {
+    return scaleFactor;
 }
 
 void GameObjectContainer::addGameObject(GameObject *obj, bool doUpdate) {

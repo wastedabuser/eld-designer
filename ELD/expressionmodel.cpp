@@ -26,6 +26,10 @@ QVariant ExpressionModel::data(const QModelIndex &index, int role) const {
 		return QVariant();
 
 	Expression *item = getItem(index);
+
+    if (role == Qt::DisplayRole)
+        return item->view(index.column());
+
 	return item->data(index.column());
 }
 

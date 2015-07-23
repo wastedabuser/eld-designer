@@ -13,7 +13,8 @@ class Property {
     Qt::ItemFlags flags(int column) const;
     bool setData(int column, const QVariant &val);
 	bool readOnly() const;
-	QString getType();
+    bool systemProperty() const;
+    QString getType() const;
 	QString getMeta();
 	QJsonArray getOptions();
 

@@ -7,9 +7,9 @@
 #include <QtGui>
 #include <QJsonObject>
 
-PropertyModel::PropertyModel(GameObject *gObject, const QString &typeName, const QJsonObject &obj, QObject *parent): QAbstractTableModel(parent) {
+PropertyModel::PropertyModel(GameObject *gObject,const QString &id, const QString &typeName, const QJsonObject &obj, QObject *parent): QAbstractTableModel(parent) {
 	gameObject = gObject;
-	setJsonObject(typeName, obj);
+    setJsonObject(id, typeName, obj);
 }
 
 PropertyModel::~PropertyModel() {
@@ -47,12 +47,18 @@ bool PropertyModel::setData(const QModelIndex &index, const QVariant &value, int
     if (index.isValid() && role == Qt::EditRole) {
 
         Property *item = getItem(index);
+
+        if (item->name == "_ID_" && !gameObject->idValid(value.toString()))
+            return false;
+
 		bool res = item->setData(index.column(), value);
 		if (res) {
 			emit dataChanged(index, index);
 			emit propertyChanged(item->name, item->value);
 			changesToCommit = true;
 			if (!changeFlag) finishPropertyChange();
+
+            if (item->systemProperty()) gameObject->reportIdChange();
 		}
 		return res;
     }
@@ -70,25 +76,34 @@ void PropertyModel::appendPropertyItem(QString &name, QString &value, QJsonObjec
 void PropertyModel::updateFilesMap(QHash<QString, bool> &uniqueFiles) {
 	for (int i = 0; i < properties.size(); i++) {
 		Property *pr = properties[i];
-		if (pr->getType() == "file") uniqueFiles[pr->value] = true;
+        QString tp = pr->getType();
+        if (tp == "file" || tp == "texture") uniqueFiles[pr->value] = true;
 	}
+}
+
+QString PropertyModel::getId() {
+    for (int i = 0; i < properties.size(); i++) {
+        Property *pr = properties[i];
+        if (pr->name == "_ID_") return pr->value;
+    }
+    return "";
 }
 
 QJsonObject PropertyModel::getJsonObject() {
 	QJsonObject obj;
 	for (int i = 0; i < properties.size(); i++) {
 		Property *pr = properties[i];
-		if (pr->readOnly()) continue;
+        if (pr->systemProperty()) continue;
 		obj[pr->name] = pr->value;
 	}
 	return obj;
 }
 
-void PropertyModel::setJsonObject(const QString &typeName, const QJsonObject &propData) {
+void PropertyModel::setJsonObject(const QString &id, const QString &typeName, const QJsonObject &propData) {
 	QList<QJsonObject> propList = Config::getPropertiesForType(typeName);
 	QJsonObject propDefinition = Config::typesDefinitions[typeName];
 
-	beginInsertRows(QModelIndex(), 0, propList.size());
+    beginInsertRows(QModelIndex(), 0, propList.size() + 1);
 
 	QJsonObject systemObj;
 	QString systp = "_TYPE_";
@@ -96,6 +111,13 @@ void PropertyModel::setJsonObject(const QString &typeName, const QJsonObject &pr
 	systemObj["type"] = "readonly";
 	systemObj["name"] = systp;
 	appendPropertyItem(systp, sysvl, systemObj);
+
+    QJsonObject systemObj1;
+    QString systp1 = "_ID_";
+    QString sysvl1 = id;
+    systemObj1["type"] = "string";
+    systemObj1["name"] = systp1;
+    appendPropertyItem(systp1, sysvl1, systemObj1);
 
 	for (int i = 0; i < propList.size(); ++i) {
 		QJsonObject propertyObj = propList[i];

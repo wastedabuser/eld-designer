@@ -1,5 +1,5 @@
-#ifndef ITEMDELEGATE_H
-#define ITEMDELEGATE_H
+#ifndef PROPERTYEDITORDELEGATE_H
+#define PROPERTYEDITORDELEGATE_H
 
 #include "propertymodel.h"
 
@@ -33,4 +33,4 @@ class PropertyEditorDelegate : public QStyledItemDelegate {
 	mutable QLineEdit *lineEditor;
 };
 
-#endif // ITEMDELEGATE_H
+#endif // PROPERTYEDITORDELEGATE_H

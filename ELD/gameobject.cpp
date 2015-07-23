@@ -13,7 +13,7 @@ GameObject::GameObject(GameObjectModel *model, const QJsonObject &obj, GameObjec
 
 	type = obj["type"].toString();
 	id = obj["id"].toString();
-	propertyModel = new PropertyModel(this, type, obj["properties"].toObject());
+    propertyModel = new PropertyModel(this, id, type, obj["properties"].toObject());
 
 	if (gameObjectModel) gameObjectModel->objectsById[id] = this;
 
@@ -90,7 +90,8 @@ QJsonArray GameObject::getChildJsonArray() {
 QJsonObject GameObject::getJsonObject() {
 	QJsonObject obj;
 	if (!type.isEmpty()) obj["type"] = type;
-	if (!id.isEmpty()) obj["id"] = id;
+
+    obj["id"] = propertyModel->getId();
 	QJsonArray children = getChildJsonArray();
 	if (!children.isEmpty()) obj["children"] = children;
 	if (propertyModel) {
@@ -98,6 +99,20 @@ QJsonObject GameObject::getJsonObject() {
 		if (!properties.isEmpty()) obj["properties"] = properties;
 	}
 	return obj;
+}
+
+void GameObject::setId(QString nid) {
+    id = nid;
+    setPropertyValue("_ID_", nid);
+}
+
+bool GameObject::idValid(QString value) {
+   return gameObjectModel->idValid(this, value);
+}
+
+void GameObject::reportIdChange() {
+    id = propertyModel->getId();
+    gameObjectModel->udpateGameObjectView(this);
 }
 
 void GameObject::updateFilesMap(QHash<QString, bool> &uniqueFiles) {

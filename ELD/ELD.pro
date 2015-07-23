@@ -34,7 +34,8 @@ SOURCES += main.cpp\
     expressioneditordelegate.cpp \
     newdocumentwizard.cpp \
     qmimedatawithindex.cpp \
-    textureatlas.cpp
+    textureatlas.cpp \
+    texturepreview.cpp
 
 HEADERS  += mainwindow.h \
     editor.h \
@@ -57,13 +58,15 @@ HEADERS  += mainwindow.h \
     expressioneditordelegate.h \
     newdocumentwizard.h \
     qmimedatawithindex.h \
-    textureatlas.h
+    textureatlas.h \
+    texturepreview.h
 
 FORMS    += mainwindow.ui \
     editor.ui \
     gameobjectcontainer.ui \
     expressiondesigner.ui \
-    newdocumentwizard.ui
+    newdocumentwizard.ui \
+    texturepreview.ui
 
 RESOURCES += \
     icons.qrc

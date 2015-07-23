@@ -27,6 +27,8 @@ class GameObjectContainer : public QWidget {
 	void selectGameObject(GameObject *obj);
 	void selectView(GameObjectView *view);
 	void zoom(bool out, bool wheel = false);
+    void setScaleFactor(double sf);
+    double getScaleFactor();
 	QList<GameObjectView *> getViewsForObejcts(QList<GameObject *> &list);
 	QRect getViewsBounds(QList<GameObjectView *> &list);
 
@@ -43,7 +45,7 @@ class GameObjectContainer : public QWidget {
 	Ui::GameObjectContainer *ui;
 	QList<GameObjectView *> views;
 	QHash<GameObject *, GameObjectView *> hViews;
-	double scaleFactor;
+    double scaleFactor;
 	double dmw;
 	double dmh;
 	double rx;

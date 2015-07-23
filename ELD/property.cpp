@@ -35,11 +35,15 @@ bool Property::setData(int column, const QVariant &val) {
 }
 
 bool Property::readOnly() const {
-	return name.left(1) == "_" && name.right(1) == "_";
+    return getType() == "readonly";
 }
 
-QString Property::getType() {
+QString Property::getType() const {
 	return options["type"].toString();
+}
+
+bool Property::systemProperty() const {
+    return name.left(1) == "_" && name.right(1) == "_";
 }
 
 QString Property::getMeta() {

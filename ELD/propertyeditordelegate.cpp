@@ -2,6 +2,8 @@
 #include "expressiondesigner.h"
 #include "propertyeditordelegate.h"
 #include "propertymodel.h"
+#include "textureatlas.h"
+#include "texturepreview.h"
 #include <QComboBox>
 #include <QJsonArray>
 #include <QLineEdit>
@@ -38,7 +40,7 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 		QCheckBox *cb = new QCheckBox(parent);
 
 		return cb;
-	} else if (propertyType == "file" || propertyType == "color" || propertyType == "expression") {
+    } else if (propertyType == "file" || propertyType == "texture" || propertyType == "color" || propertyType == "expression") {
 		editorContainer = new QWidget(parent);
 		QHBoxLayout *layout = new QHBoxLayout;
 		lineEditor = new QLineEdit;
@@ -50,7 +52,7 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 		layout->addWidget(actionBtn);
 		editorContainer->setLayout(layout);
 
-		if (propertyType == "file") connect(actionBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
+        if (propertyType == "file" || propertyType == "texture") connect(actionBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
 		else if (propertyType == "color") connect(actionBtn, SIGNAL(clicked()), this, SLOT(on_colorBtn_clicked()));
 		else if (propertyType == "expression") connect(actionBtn, SIGNAL(clicked()), this, SLOT(on_expressionBtn_clicked()));
 
@@ -63,8 +65,17 @@ QWidget* PropertyEditorDelegate::createEditor(QWidget *parent, const QStyleOptio
 void PropertyEditorDelegate::on_fileBtn_clicked() {
 	QString path = Config::getResourceAbsolutePath(lineEditor->text());
 	path = QFileDialog::getOpenFileName(actionBtn, tr("Pick file"), path, "Files (" + propertyMeta + ")");
-	if (!path.isEmpty()) {
-		lineEditor->setText(Config::getResourceRelativePath(path));
+    if (!path.isEmpty()) {
+        if (propertyType == "texture") {
+            TextureAtlas *atlas = new TextureAtlas(path);
+            if (!atlas->empty()) {
+                lineEditor->setText(TexturePreview::selectTexture(Config::getResourceRelativePath(path), atlas));
+            } else {
+                lineEditor->setText(Config::getResourceRelativePath(path));
+            }
+        } else {
+            lineEditor->setText(Config::getResourceRelativePath(path));
+        }
 		emit commitData(editorContainer);
 	}
 }
@@ -84,13 +95,13 @@ void PropertyEditorDelegate::on_expressionBtn_clicked() {
 }
 
 void PropertyEditorDelegate::destroyEditor(QWidget * editor, const QModelIndex & index) const {
-	if (propertyType == "file") disconnect(actionBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
+    if (propertyType == "file" || propertyType == "texture") disconnect(actionBtn, SIGNAL(clicked()), this, SLOT(on_fileBtn_clicked()));
 	QStyledItemDelegate::destroyEditor(editor, index);
 }
 
 void PropertyEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const {
 	QString currentText = index.data(Qt::EditRole).toString();
-	if (propertyType == "file" || propertyType == "color" || propertyType == "expression") {
+    if (propertyType == "file" || propertyType == "texture" || propertyType == "color" || propertyType == "expression") {
 		lineEditor->setText(currentText);
 	} else if (QComboBox *cb = qobject_cast<QComboBox *>(editor)) {
 		int cbIndex = cb->findText(currentText);
@@ -104,14 +115,14 @@ void PropertyEditorDelegate::setEditorData(QWidget *editor, const QModelIndex &i
 void PropertyEditorDelegate::setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const {
 	PropertyModel *pm = (PropertyModel*) model;
 	Property *prop = propertyModel->getItem(index);
-	if (propertyType == "file" || propertyType == "color" || propertyType == "expression") {
+    if (propertyType == "file" || propertyType == "texture" || propertyType == "color" || propertyType == "expression") {
 		pm->startPropertyChange();
-		model->setData(index, lineEditor->text());
+        pm->setData(index, lineEditor->text());
 		pm->setPropertyTrigger(prop->name, lineEditor->text(), prop->options);
 		pm->finishPropertyChange();
 	} else if (QComboBox *cb = qobject_cast<QComboBox *>(editor)) {
 		pm->startPropertyChange();
-		pm->setData(index, cb->currentText(), Qt::EditRole);
+        pm->setData(index, cb->currentText());
 		pm->setPropertyTrigger(prop->name, cb->currentText(), cb->currentData().toJsonObject());
 		pm->finishPropertyChange();
 	} else

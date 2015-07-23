@@ -71,22 +71,26 @@ bool GameObjectModel::setData(const QModelIndex &index, const QVariant &value, i
 	GameObject *item = getItem(index);
 	QString newVal = value.toString();
 
-	if (newVal == item->id) return false;
-
-	if (objectsById.contains(value.toString()) && objectsById[value.toString()] != item) {
-		QMessageBox messageBox;
-		messageBox.warning(0, tr("Not allowed"), tr("The specified id of the item already exists!"));
-		return false;
-	}
+    if (newVal == item->id || !idValid(item, newVal)) return false;
 
 	objectsById.remove(item->id);
-	item->id = value.toString();
+    item->setId(value.toString());
 	objectsById[item->id] = item;
 
 	emit dataChanged(index, index);
 	emit gameObjectChanged();
 
 	return true;
+}
+
+bool GameObjectModel::idValid(GameObject *item, QString value) {
+    if (objectsById.contains(value) && objectsById[value] != item) {
+        QMessageBox messageBox;
+        messageBox.warning(0, tr("Not allowed"), tr("The specified id of the item already exists!"));
+        return false;
+    }
+
+    return true;
 }
 
 Qt::ItemFlags GameObjectModel::flags(const QModelIndex &index) const {
@@ -237,9 +241,12 @@ QJsonObject GameObjectModel::applyNewIdsIfExist(const QJsonObject &jobj) {
 	return nobj;
 }
 
-QJsonDocument GameObjectModel::getJson() {
+QJsonDocument GameObjectModel::getJson(QJsonObject &editorMeta) {
 	QJsonObject obj = rootItem->getJsonObject();
-	obj["idCounter"] = idCounter;
+
+    editorMeta["idCounter"] = idCounter;
+    obj["editorMeta"] = editorMeta;
+
 	QJsonArray files = getFilesList();
 	if (!files.isEmpty()) obj["files"] = files;
 	QJsonDocument doc;
@@ -258,15 +265,22 @@ QJsonArray GameObjectModel::getFilesList() {
 	return arr;
 }
 
-void GameObjectModel::setJson(const QJsonDocument &doc) {
+QJsonObject GameObjectModel::setJson(const QJsonDocument &doc) {
 	QJsonObject obj = doc.object();
 	if (obj.isEmpty()) Util::warn("Document is empty");
 
+    QJsonObject editorMeta = obj["editorMeta"].toObject();
+    if (!editorMeta.isEmpty()) {
+        idCounter = editorMeta["idCounter"].toInt();
+    }
+    if (obj.contains("idCounter")) idCounter = obj["idCounter"].toInt();
+
 	setJsonObject(obj);
+
+    return editorMeta;
 }
 
 void GameObjectModel::setJsonObject(const QJsonObject &obj) {
-	if (obj.contains("idCounter")) idCounter = obj["idCounter"].toInt();
 	beginInsertRows(QModelIndex(), 0, 0);
 	rootItem = new GameObject(this, obj);
 	endInsertRows();
@@ -358,4 +372,9 @@ bool GameObjectModel::moveGameObject(const QModelIndex &pindex, int offset) {
 
 void GameObjectModel::onPropertyModelChanged(GameObject *obj) {
 	emit gameObjectChanged();
+}
+
+void GameObjectModel::udpateGameObjectView(GameObject *obj) {
+    QModelIndex index = getGameObjectIndex(obj);
+    emit dataChanged(index, index);
 }

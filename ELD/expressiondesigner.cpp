@@ -35,6 +35,8 @@ void ExpressionDesigner::setExpression(QString &expr) {
 	expressionModel = new ExpressionModel(expr);
 	ui->tableView->setModel(expressionModel);
 	ui->tableView->setItemDelegate(new ExpressionEditorDelegate());
+    ui->tableView->setColumnWidth(0, 150);
+    ui->tableView->setColumnWidth(1, 500);
 }
 
 QString ExpressionDesigner::getExpressionData() {

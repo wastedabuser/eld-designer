@@ -53,9 +53,31 @@ void Editor::load(const QString &fileNm) {
 	if (fileName.isEmpty()) return;
 
 	QJsonDocument doc = JsonIO::readJson(fileName);
-	gameObjectModel->setJson(doc);
+    QJsonObject editorMeta = gameObjectModel->setJson(doc);
 	gameObjectContainer->addGameObject(gameObjectModel->rootItem, false);
-	gameObjectContainer->updateCanvas();
+
+    if (!editorMeta.isEmpty()) {
+        QList<int> sizes;
+        if (editorMeta.contains("treeWidth")) {
+            sizes.append(editorMeta["treeWidth"].toInt());
+            sizes.append(editorMeta["workspaceWidth"].toInt());
+            ui->splitter->setSizes(sizes);
+            sizes.clear();
+        }
+        if (editorMeta.contains("treeHeight")) {
+            sizes.append(editorMeta["treeHeight"].toInt());
+            sizes.append(editorMeta["propertiesHeight"].toInt());
+            ui->splitter_2->setSizes(sizes);
+            sizes.clear();
+        }
+        if (editorMeta.contains("scaleFactor")) {
+            gameObjectContainer->setScaleFactor(editorMeta["scaleFactor"].toDouble());
+        } else {
+            gameObjectContainer->updateCanvas();
+        }
+    } else {
+        gameObjectContainer->updateCanvas();
+    }
 
 	QTimer::singleShot(0, this, SLOT(onEditorReady()));
 }
@@ -65,7 +87,17 @@ void Editor::onEditorReady() {
 }
 
 void Editor::save() {
-	QJsonDocument doc = gameObjectModel->getJson();
+    QJsonObject editorMeta;
+    QList<int> sizes = ui->splitter->sizes();
+    editorMeta["treeWidth"] = sizes[0];
+    editorMeta["workspaceWidth"] = sizes[1];
+    sizes = ui->splitter_2->sizes();
+    editorMeta["treeHeight"] = sizes[0];
+    editorMeta["propertiesHeight"] = sizes[1];
+
+    editorMeta["scaleFactor"] = gameObjectContainer->getScaleFactor();
+
+    QJsonDocument doc = gameObjectModel->getJson(editorMeta);
 	QString newName = doc.object()["id"].toString();
 	if (!newName.isEmpty()) newName = "/" + newName + ".json";
 
@@ -80,8 +112,7 @@ void Editor::save() {
 	}
 
 	if (!fileName.isEmpty()) {
-		JsonIO::writeJson(fileName, doc);
-
+		JsonIO::writeJson(fileName, doc);                
 		mainWindow->updateEditorIndexes();
 		QTabWidget *tabs = (QTabWidget*) parentWidget()->parentWidget();
 		QFileInfo info1(fileName);

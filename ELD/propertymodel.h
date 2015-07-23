@@ -11,7 +11,7 @@ class PropertyModel : public QAbstractTableModel {
     Q_OBJECT
 
   public:
-	PropertyModel(GameObject *gObject, const QString &typeName, const QJsonObject &obj, QObject *parent = 0);
+    PropertyModel(GameObject *gObject, const QString &id, const QString &typeName, const QJsonObject &obj, QObject *parent = 0);
     ~PropertyModel();
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const;
@@ -24,8 +24,9 @@ class PropertyModel : public QAbstractTableModel {
     void createPropertyItems(const QList<QJsonObject> &propList, const QJsonObject &propData);
 	void appendPropertyItem(QString &name, QString &value, QJsonObject &options);
 	void updateFilesMap(QHash<QString, bool> &uniqueFiles);
+    QString getId();
 	QJsonObject getJsonObject();
-	void setJsonObject(const QString &typeName, const QJsonObject &propData);
+    void setJsonObject(const QString &id, const QString &typeName, const QJsonObject &propData);
 	QString getPropertyValue(const QString &name, const QString &typeName);
 	bool setPropertyValue(const QString &name, const QString &value, bool silent = false);
 	bool hasProperty(const QString &name, const QString &typeName);

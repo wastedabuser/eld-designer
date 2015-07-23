@@ -22,6 +22,7 @@ class GameObjectModel : public QAbstractItemModel {
     int columnCount(const QModelIndex &parent = QModelIndex()) const;
     Qt::ItemFlags flags(const QModelIndex &index) const;
 	bool setData(const QModelIndex &index, const QVariant &value, int role = Qt::EditRole);
+    bool idValid(GameObject *item, QString value);
 	QStringList mimeTypes() const;
 	Qt::DropActions supportedDropActions() const;
 	QMimeData *mimeData(const QModelIndexList &indexes) const;
@@ -31,9 +32,9 @@ class GameObjectModel : public QAbstractItemModel {
 	QJsonObject applyNewIdsIfExist(const QJsonObject &jobj);
     GameObject *getItem(const QModelIndex &index) const;
 	QString getNextGameObjectId(const QString &typeName);
-    QJsonDocument getJson();
+    QJsonDocument getJson(QJsonObject &editorMeta);
 	QJsonArray getFilesList();
-	void setJson(const QJsonDocument &doc);
+    QJsonObject setJson(const QJsonDocument &doc);
 	void setJsonObject(const QJsonObject &obj);
 	void createFromJsonObject(const QJsonObject &obj, const QModelIndex &index);
 	bool canCreateObject(const QString &typeName, const QModelIndex &index);
@@ -41,7 +42,8 @@ class GameObjectModel : public QAbstractItemModel {
 	GameObject *createGameObject(const QString &typeName, const QModelIndex &index);
 	GameObject *removeGameObject(const QModelIndex &index, bool removeIdIndex = true);
 	bool moveGameObject(const QModelIndex &pindex, int offset);
-	void onPropertyModelChanged(GameObject *obj);
+    void onPropertyModelChanged(GameObject *obj);
+    void udpateGameObjectView(GameObject *obj);
 
 	GameObject *rootItem;
 	QHash<QString, GameObject *> objectsById;

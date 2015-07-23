@@ -61,7 +61,7 @@ void Config::setConfig(const QJsonDocument &configJson) {
 	for (int i = 0; i < Config::expressionsRef.size(); i++) {
 		QJsonObject expr = Config::expressionsRef[i].toObject();
 
-		QString exprName = expr["type"].toString();
+        QString exprName = expr["name"].toString();
 		Config::expressionsDefinitions.insert(exprName, expr);
 	}
 
@@ -89,10 +89,11 @@ QHash<QString, bool> Config::getTypesForExpression(const QString &expr) {
 
 QList<QJsonObject> Config::getExpressionsForTypes(QHash<QString, bool> types) {
 	QList<QJsonObject> result;
+    QList<QJsonObject> withoutWho;
 	for (int i = 0; i < Config::expressionsRef.size(); i++) {
 		QJsonObject exprObj = Config::expressionsRef[i].toObject();
 		if (!exprObj.contains("who")) {
-			result.append(exprObj);
+            withoutWho.append(exprObj);
 			continue;
 		}
 		QJsonArray whoList = exprObj["who"].toArray();
@@ -100,7 +101,7 @@ QList<QJsonObject> Config::getExpressionsForTypes(QHash<QString, bool> types) {
 			if (types.contains(whoList[j].toString())) result.append(exprObj);
 		}
 	}
-	return result;
+    return result.size() > 0 ? result : withoutWho;
 }
 
 QString Config::getResourceAbsolutePath(const QString &path) {

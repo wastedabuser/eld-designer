@@ -10,6 +10,10 @@ TextureAtlas::TextureAtlas(QString path) {
 	if (texture.isNull()) texture = QImage(path);
 }
 
+bool TextureAtlas::empty() {
+    return rectMap.empty();
+}
+
 void TextureAtlas::parseAtlas(QString path) {
 	QFile xmlFile(path);
 	if (!xmlFile.exists()) {
@@ -52,4 +56,8 @@ QImage TextureAtlas::getTexture(QString name) {
 	}
 	QRect rect = rectMap[name];
 	return texture.copy(rect);
+}
+
+QStringList TextureAtlas::getTextureNames() {
+    return QStringList(rectMap.keys());
 }
