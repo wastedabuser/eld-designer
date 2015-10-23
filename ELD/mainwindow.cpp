@@ -160,7 +160,7 @@ void MainWindow::addEditor(const QString &label, const QString &fileName) {
 	} else
 		editor->load(fileName);
 
-    tabs->addTab(editor, label);
+    tabs->addTab(editor, "[" + editor->type() + "] " + label);
     tabs->setCurrentWidget(editor);
 	editor->tabIndex = tabs->currentIndex();
 }
@@ -183,7 +183,7 @@ void MainWindow::on_actionOpen_triggered() {
 		QString lastOpenDir = info1.absolutePath();
 		applySetting("lastOpenDir", lastOpenDir);
 
-		MainWindow::addEditor(info1.fileName(), fileName);
+        MainWindow::addEditor(info1.fileName(), fileName);
 	}
 }
 
@@ -213,7 +213,15 @@ void MainWindow::on_actionSave_triggered() {
     if (tabs->currentWidget() == 0) return;
 
     Editor *curEditor = (Editor*) tabs->currentWidget();
-    curEditor->save();
+    curEditor->save(false);
+}
+
+void MainWindow::on_actionSave_As_triggered() {
+    QTabWidget *tabs = ui->tabWidget;
+    if (tabs->currentWidget() == 0) return;
+
+    Editor *curEditor = (Editor*) tabs->currentWidget();
+    curEditor->save(true);
 }
 
 void MainWindow::on_actionZoom_in_triggered() {
@@ -282,7 +290,7 @@ void MainWindow::on_actionSave_All_triggered() {
 	QTabWidget *tabs = ui->tabWidget;
 	for (int i = 0; i < tabs->count(); i++) {
 		Editor *curEditor = (Editor*) tabs->widget(i);
-		curEditor->save();
+        curEditor->save(false);
 	}
 }
 

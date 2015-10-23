@@ -21,7 +21,8 @@ class Editor : public QWidget {
 	~Editor();
 
 	QList<QJsonObject> getPropertiesForType(const QString &typeName);
-	void save();
+    QString type();
+    void save(bool saveAs);
 	void load(const QString &fileNm);
 	void createNew(QJsonObject &obj);
 	void addNode(const QModelIndex &index);

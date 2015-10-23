@@ -48,6 +48,10 @@ void Editor::createNew(QJsonObject &obj) {
 	gameObjectContainer->addGameObject(gameObjectModel->rootItem);
 }
 
+QString Editor::type() {
+    return gameObjectModel->rootItem->type;
+}
+
 void Editor::load(const QString &fileNm) {
 	fileName = fileNm;
 	if (fileName.isEmpty()) return;
@@ -86,7 +90,7 @@ void Editor::onEditorReady() {
 	gameObjectContainer->centerView();
 }
 
-void Editor::save() {
+void Editor::save(bool saveAs) {
     QJsonObject editorMeta;
     QList<int> sizes = ui->splitter->sizes();
     editorMeta["treeWidth"] = sizes[0];
@@ -101,7 +105,7 @@ void Editor::save() {
 	QString newName = doc.object()["id"].toString();
 	if (!newName.isEmpty()) newName = "/" + newName + ".json";
 
-	if (fileName.isEmpty()) {
+    if (saveAs || fileName.isEmpty()) {
 		fileName = QFileDialog::getSaveFileName(this, tr("Open File"), mainWindow->lastOpenDir() + newName, tr("Files (*.txt;*.json)"));
 		if (!fileName.isEmpty()) {
 			mainWindow->addRecentFile(fileName);

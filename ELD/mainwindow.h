@@ -65,7 +65,9 @@ class MainWindow : public QMainWindow {
 
 	void on_actionClose_All_triggered();
 
-	private:
+    void on_actionSave_As_triggered();
+
+private:
 	Ui::MainWindow *ui;
     QString settingsFile;
     QJsonDocument settingsJson;
